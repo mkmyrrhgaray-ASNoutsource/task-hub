@@ -636,8 +636,7 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:14
 .cloud-btn.setup-needed:hover{background:var(--amber);color:#fff;animation:none}
 .share-btn{font-family:var(--sans);font-size:11px;font-weight:600;padding:5px 11px;border-radius:20px;border:1px solid var(--border-md);background:var(--surface3);color:var(--text2);cursor:pointer;transition:all .12s;white-space:nowrap}
 .share-btn:hover{border-color:var(--blue);color:var(--blue)}
-.view-mode-badge{font-family:var(--mono);font-size:10px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--amber);background:var(--amber-bg);border:1px solid rgba(210,153,34,.3);padding:3px 9px;border-radius:20px;display:none}
-.view-mode-badge.show{display:inline-block}
+
 
 /* SHARE MODAL */
 .share-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:600;align-items:center;justify-content:center}
@@ -685,10 +684,7 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:14
 .setup-error{font-size:12px;color:var(--red);margin-top:6px;display:none}
 
 /* VIEW MODE — disable all editing */
-body.view-mode input:not(.share-link-input):not(.pin-input):not([type=file]):not([type=datetime-local]):not([type=time]):not([type=checkbox]):not([type=text].cal-form-in):not(.wr-field-in):not(.wr-textarea){pointer-events:none!important;opacity:.7}
-body.view-mode textarea{pointer-events:none!important;opacity:.7}
-body.view-mode select{pointer-events:none!important;opacity:.7}
-body.view-mode button:not(.ntab):not(.hdr-backup-btn):not(.share-btn):not(.cloud-btn):not(.share-copy-btn):not(.break-log-toggle):not(.qi-notes-tog):not(.rem-del):not(.cal-alert-close):not(.dl-dismiss):not(.break-log-toggle):not(.cal-modal-btn):not(.share-close):not(.eod-btn){pointer-events:none!important;opacity:.5}
+
 
 /* ── CHECKLIST ATTACHMENT ── */
 .tl-cl-item{display:flex;align-items:flex-start;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)}
@@ -844,40 +840,20 @@ body.view-mode button:not(.ntab):not(.hdr-backup-btn):not(.share-btn):not(.cloud
       <button class="share-close" onclick="closeShare()">×</button>
     </div>
     <div class="share-modal-body">
-      <div id="share-no-cloud" style="background:var(--amber-bg);border:1px solid rgba(210,153,34,.4);border-radius:var(--r);padding:10px 14px;font-size:12px;color:var(--amber);margin-bottom:14px;display:none">
-        ⚠️ Cloud sync not set up yet. Set up Firebase first so shared links can access your data.
-        <button style="margin-left:8px;background:var(--amber);color:#fff;border:none;padding:3px 9px;border-radius:4px;cursor:pointer;font-size:11px" onclick="closeShare();openSetup()">Setup Now</button>
-      </div>
       <div class="share-section">
-        <div class="share-section-label">Workspace ID</div>
-        <div class="ws-id-display" id="ws-id-display">—</div>
-      </div>
-      <hr class="share-divider">
-      <div class="share-section">
-        <div class="share-section-label">👁 View-Only Link <span class="share-mode-badge smb-view">Read only</span></div>
-        <div class="share-link-row">
-          <input class="share-link-input" id="share-view-link" readonly>
-          <button class="share-copy-btn" onclick="copyShareLink('view')">Copy</button>
-        </div>
-        <div class="share-note">People with this link can see your workspace but cannot make changes.</div>
-      </div>
-      <hr class="share-divider">
-      <div class="share-section">
-        <div class="share-section-label">✏️ Edit Link <span class="share-mode-badge smb-edit">Can edit</span></div>
+        <div class="share-section-label">🔗 Share Link <span class="share-mode-badge smb-edit">Everyone can edit &amp; see live changes</span></div>
         <div class="share-link-row">
           <input class="share-link-input" id="share-edit-link" readonly>
           <button class="share-copy-btn" onclick="copyShareLink('edit')">Copy</button>
         </div>
-        <div class="share-note">Share this only with people you trust — they can add, edit, and delete data.</div>
+        <div class="share-note">Anyone with this link can view and edit the workspace in real time.</div>
       </div>
       <hr class="share-divider">
       <div class="share-section">
-        <div class="share-section-label">🔧 Hosting Instructions</div>
+        <div class="share-section-label">🔧 Hosting tip</div>
         <div class="share-note" style="line-height:1.8">
-          For share links to work, this file must be hosted online:<br>
-          1. Upload <code>asn_workspace_v9.html</code> to <a href="https://app.netlify.com/drop" target="_blank">Netlify Drop</a> (free, drag &amp; drop)<br>
-          2. You'll get a URL like <code>https://abc123.netlify.app/asn_workspace_v9.html</code><br>
-          3. Add <code>#ws=YOUR_ID</code> to the end of that URL to share your workspace
+          This file must be hosted online for share links to work.<br>
+          Upload it to your GitHub repo → enable <b>GitHub Pages</b> (Settings → Pages → Deploy from branch) → your URL will be <code>https://yourusername.github.io/yourrepo/asn_workspace_v2.html#ws=YOUR_ID</code>
         </div>
       </div>
     </div>
@@ -993,7 +969,6 @@ body.view-mode button:not(.ntab):not(.hdr-backup-btn):not(.share-btn):not(.cloud
   </div>
   <div class="hdr-right">
     <div class="hdr-date" id="hdr-date"></div>
-    <span class="view-mode-badge" id="view-mode-badge">👁 View Only</span>
     <div class="save-indicator" id="save-indicator" title="Auto-save status">
       <span class="save-dot" id="save-dot"></span>
       <span id="save-label">No file linked</span>
@@ -1383,6 +1358,7 @@ let _workspaceId = '';  // Current workspace ID
 let _isOwner = false;   // True if this browser created this workspace
 let _isEditMode = false;// True if user has edit access
 let _isSyncing = false;
+const _sessionId = Math.random().toString(36).slice(2); // unique per tab, used to ignore own realtime echoes
 
 // ── WORKSPACE HELPERS ─────────────────────────────────────────────────
 function genId(len=12){
@@ -1417,39 +1393,14 @@ function initWorkspaceId(){
   const hash = getHashParams();
   if(hash.ws){
     _workspaceId = hash.ws;
-    // Check if I'm owner (I created this workspace) or have edit token
-    const ownKey = 'asn_own_' + _workspaceId;
-    _isOwner = localStorage.getItem(ownKey)==='1';
-    const myTok = getMyEditToken(_workspaceId);
-    const urlTok = hash.tok;
-    if(_isOwner){
-      _isEditMode = true;
-      // Self-heal: if owner loads without tok in URL (old links), inject it now
-      if(!urlTok && myTok){
-        setHashParam('tok', myTok);
-      }
-    } else if(urlTok && myTok && urlTok===myTok){
-      _isEditMode = true;
-      // Persist tok to URL so bookmark/refresh keeps edit access
-      setHashParam('tok', urlTok);
-    } else if(urlTok){
-      // Verify token against Firebase (done in init async)
-      _isEditMode = false; // temporary until verified
-    } else {
-      _isEditMode = false; // view mode
-    }
   } else {
-    // New workspace
+    // New workspace — generate an ID and put it in the URL
     _workspaceId = genId(12);
-    _isOwner = true;
-    _isEditMode = true;
-    localStorage.setItem('asn_own_'+_workspaceId,'1');
-    // Generate and store edit token
-    const tok = genToken();
-    saveEditToken(_workspaceId, tok);
     setHashParam('ws', _workspaceId);
-    setHashParam('tok', tok); // FIX Bug 1: persist tok to URL so owner's address bar always carries edit access
   }
+  // Everyone who opens the link gets full edit access — no tokens, no view-only
+  _isOwner = true;
+  _isEditMode = true;
 }
 
 // ── FIREBASE INIT ─────────────────────────────────────────────────────
@@ -1505,12 +1456,12 @@ function stripPDFs(data){
 }
 
 async function firebaseSave(payload){
-  if(!db||!_workspaceId||!_isEditMode||_isSyncing) return;
+  if(!db||!_workspaceId||_isSyncing) return;
   if(!navigator.onLine) return; // skip silently when offline
   _isSyncing=true;
   try{
     const cloudData = stripPDFs(payload);
-    cloudData._editToken = getMyEditToken(_workspaceId)||'';
+    cloudData._lastSavedBy = _sessionId;
     await db.collection('workspaces').doc(_workspaceId).set({
       data: cloudData,
       updatedAt: firebase.firestore.FieldValue.serverTimestamp()
@@ -1541,48 +1492,17 @@ async function firebaseLoad(){
   }
 }
 
-async function verifyEditToken(wsId, urlTok){
-  if(!db) return false;
-  try{
-    const doc = await db.collection('workspaces').doc(wsId).get();
-    if(!doc.exists) return false;
-    const storedTok = doc.data()?.data?._editToken;
-    if(storedTok && storedTok===urlTok){
-      saveEditToken(wsId, urlTok); // remember for future
-      return true;
-    }
-    return false;
-  }catch(e){return false;}
-}
+// verifyEditToken removed — no token system
 
-// ── APPLY VIEW MODE ───────────────────────────────────────────────────
-function applyViewMode(){
-  if(!_isEditMode){
-    document.body.classList.add('view-mode');
-    const badge=document.getElementById('view-mode-badge');
-    if(badge)badge.classList.add('show');
-    // Hide edit controls that shouldn't show in view mode
-    const setupBtn=document.getElementById('setup-btn');
-    if(setupBtn)setupBtn.style.display='none';
-  }
-}
+// view-mode removed — all users can edit
 
 // ── SHARE MODAL ───────────────────────────────────────────────────────
 function openShare(){
   const overlay=document.getElementById('share-overlay');
   if(!overlay)return;
   overlay.classList.add('open');
-  // Populate workspace ID
-  document.getElementById('ws-id-display').textContent=_workspaceId;
-  // Build links
   const base = window.location.href.split('#')[0];
-  const viewLink = `${base}#ws=${_workspaceId}&view=1`;
-  const myTok = getMyEditToken(_workspaceId)||'';
-  const editLink = myTok ? `${base}#ws=${_workspaceId}&tok=${myTok}` : `${base}#ws=${_workspaceId}`;
-  document.getElementById('share-view-link').value = viewLink;
-  document.getElementById('share-edit-link').value = editLink;
-  // Show warning if no Firebase
-  document.getElementById('share-no-cloud').style.display = db?'none':'block';
+  document.getElementById('share-edit-link').value = `${base}#ws=${_workspaceId}`;
 }
 function closeShare(){
   document.getElementById('share-overlay').classList.remove('open');
@@ -1778,7 +1698,7 @@ function triggerSave(){
     _saveTimer = setTimeout(silentSave, 600);
   }
   // Firebase cloud save (debounced, slightly longer)
-  if(db && _isEditMode){
+  if(db){
     if(_cloudSaveTimer) clearTimeout(_cloudSaveTimer);
     _cloudSaveTimer = setTimeout(()=>firebaseSave(buildPayload()), 1200);
   }
@@ -3619,51 +3539,33 @@ async function init(){
     }
   });
 
-  // ── 3. Apply view mode if not in edit mode ──
-  applyViewMode();
-
-  // ── 4. Init Firebase (if configured) ──
+  // ── 3. Init Firebase ──
   const fbConfig = loadFirebaseConfig();
-  if(fbConfig){
-    initFirebase(fbConfig);
-  } else {
-    // Show setup prompt if not skipped
-    const skipped = localStorage.getItem('asn_setup_skipped');
-    if(!skipped && _isOwner){
-      // Small delay so the page renders first
-      setTimeout(()=>openSetup(), 800);
-    }
-  }
+  if(fbConfig) initFirebase(fbConfig);
 
-  // ── 5. Load from Firebase if available ──
+  // ── 4. Load from Firebase + start real-time listener ──
   updSaveIndicator('', 'Loading…');
   if(db){
-    // If URL has edit token but we're not yet marked as edit mode, verify it
-    const hash = getHashParams();
-    if(!_isEditMode && hash.tok){
-      const valid = await verifyEditToken(_workspaceId, hash.tok);
-      if(valid){
-        _isEditMode = true;
-        document.body.classList.remove('view-mode');
-        document.getElementById('view-mode-badge')?.classList.remove('show');
-        const setupBtn=document.getElementById('setup-btn');
-        if(setupBtn)setupBtn.style.display='';
-        // FIX Bug 2: write verified tok back to URL so refresh/bookmark keeps edit access
-        setHashParam('tok', hash.tok);
-      }
-    }
     const cloudData = await firebaseLoad();
     if(cloudData){
       applyPayload(cloudData);
       const t=new Date().toLocaleTimeString('en-PH',{hour:'2-digit',minute:'2-digit'});
       updSaveIndicator('saved','☁ Synced '+t);
-    } else if(_isEditMode){
-      // First load for this workspace — save local data to cloud
-      updSaveIndicator('', _isOwner?'☁ New workspace':'☁ Connected');
-      if(_isOwner) triggerSave();
     } else {
-      updSaveIndicator('error','No data found');
+      // First time — push local data up
+      updSaveIndicator('','☁ New workspace');
+      triggerSave();
     }
+    // Real-time listener: any change from any browser syncs here instantly
+    db.collection('workspaces').doc(_workspaceId).onSnapshot(snap=>{
+      if(!snap.exists) return;
+      const incoming = snap.data()?.data;
+      if(!incoming) return;
+      if(incoming._lastSavedBy === _sessionId) return; // skip our own writes
+      applyPayload(incoming);
+      const t=new Date().toLocaleTimeString('en-PH',{hour:'2-digit',minute:'2-digit'});
+      updSaveIndicator('saved','☁ Live '+t);
+    });
   } else {
     // No Firebase — show default indicator
     updSaveIndicator('', 'No file linked');
