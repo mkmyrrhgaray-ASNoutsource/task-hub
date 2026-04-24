@@ -3525,10 +3525,9 @@ function renderImportantInfo(){
 }
 
 // ── INIT DATA FOR NEW TABS ──
-rulesItems = loadRulesData();
-sopItems = loadSOPData();
-outsourceGroups = loadOutsourceData();
-infoSections = loadInfoData();
+// These are populated by applyPayload() from Firebase.
+// localStorage is used only as offline fallback inside loadRulesData() etc.
+// Do NOT re-assign here — it would overwrite the Firebase data.
 
 // ── INIT ──
 async function init(){
@@ -3549,7 +3548,13 @@ async function init(){
     }
   });
 
-  // ── 3. Init Firebase ──
+  // ── 3. Load tab data from localStorage (offline fallback — Firebase will overwrite if available) ──
+  rulesItems = loadRulesData();
+  sopItems = loadSOPData();
+  outsourceGroups = loadOutsourceData();
+  infoSections = loadInfoData();
+
+  // ── 4. Init Firebase ──
   const fbConfig = loadFirebaseConfig();
   if(fbConfig) initFirebase(fbConfig);
 
