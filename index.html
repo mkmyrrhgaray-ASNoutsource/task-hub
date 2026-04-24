@@ -1424,9 +1424,14 @@ function initWorkspaceId(){
     const urlTok = hash.tok;
     if(_isOwner){
       _isEditMode = true;
+      // Self-heal: if owner loads without tok in URL (old links), inject it now
+      if(!urlTok && myTok){
+        setHashParam('tok', myTok);
+      }
     } else if(urlTok && myTok && urlTok===myTok){
       _isEditMode = true;
-      // Remember this token for future visits
+      // Persist tok to URL so bookmark/refresh keeps edit access
+      setHashParam('tok', urlTok);
     } else if(urlTok){
       // Verify token against Firebase (done in init async)
       _isEditMode = false; // temporary until verified
