@@ -1393,12 +1393,12 @@ function initWorkspaceId(){
   const hash = getHashParams();
   if(hash.ws){
     _workspaceId = hash.ws;
+    window._wsWasInURL = true; // came from shared link — don't overwrite Firebase with local data
   } else {
-    // New workspace — generate an ID and put it in the URL
     _workspaceId = genId(12);
     setHashParam('ws', _workspaceId);
+    window._wsWasInURL = false; // brand new workspace
   }
-  // Everyone who opens the link gets full edit access — no tokens, no view-only
   _isOwner = true;
   _isEditMode = true;
 }
@@ -3567,9 +3567,19 @@ async function init(){
       const t=new Date().toLocaleTimeString('en-PH',{hour:'2-digit',minute:'2-digit'});
       updSaveIndicator('saved','☁ Synced '+t);
     } else {
-      // First time — push local data up
-      updSaveIndicator('','☁ New workspace');
-      triggerSave();
+      // Only push local data up if this workspace ID was just generated (not from URL)
+      // If ws= was in the URL, someone shared it — don't overwrite with empty local data
+      const hashParams = getHashParams();
+      const wsWasInURL = window._wsWasInURL || false;
+      if(!wsWasInURL){
+        // Brand new workspace created by this browser — push local data up
+        updSaveIndicator('','☁ New workspace');
+        triggerSave();
+      } else {
+        // Shared workspace that returned no data — Firebase may still be initializing
+        // Just wait, don't overwrite
+        updSaveIndicator('','☁ Connecting…');
+      }
     }
     // Real-time listener: any change from any browser syncs here instantly
     db.collection('workspaces').doc(_workspaceId).onSnapshot(snap=>{
