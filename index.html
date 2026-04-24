@@ -3567,9 +3567,8 @@ async function init(){
       const t=new Date().toLocaleTimeString('en-PH',{hour:'2-digit',minute:'2-digit'});
       updSaveIndicator('saved','☁ Synced '+t);
     } else {
-      // First time — push local data up
+      // No cloud data yet for this workspace
       updSaveIndicator('','☁ New workspace');
-      triggerSave();
     }
     // Real-time listener: any change from any browser syncs here instantly
     db.collection('workspaces').doc(_workspaceId).onSnapshot(snap=>{
@@ -3607,7 +3606,6 @@ async function init(){
     }
   }
 
-  saveS();
   renderTracker();
   renderQ();
   checkDeadlines();
