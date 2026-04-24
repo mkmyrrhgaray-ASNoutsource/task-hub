@@ -1,0 +1,2921 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ASN Workspace — All Sport Netting</title>
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;1,400&family=Mulish:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#FFFFFF;--surface:#FFFFFF;--surface2:#F8F8F8;--surface3:#F0F0F0;
+  --border:rgba(0,0,0,.08);--border-md:rgba(0,0,0,.15);--border-strong:rgba(0,0,0,.28);
+  --text:#1A1A1A;--text2:#444444;--text3:#888888;--text4:#BBBBBB;
+  --blue:#58A6FF;--blue-dim:#1F3A6E;--blue-bg:rgba(88,166,255,.12);
+  --green:#3FB950;--green-bg:rgba(63,185,80,.12);--green-lt:rgba(63,185,80,.06);
+  --red:#F85149;--red-bg:rgba(248,81,73,.12);
+  --amber:#D29922;--amber-bg:rgba(210,153,34,.12);
+  --purple:#BC8CFF;--purple-bg:rgba(188,140,255,.12);
+  --gray:#6E7681;--gray-bg:rgba(110,118,129,.15);
+  --mon:#E8637A;--tue:#F4A35A;--wed:#56BFAA;--thu:#5B9BD5;--fri:#A87CC3;
+  --sans:'Mulish',sans-serif;--serif:'Playfair Display',serif;--mono:'IBM Plex Mono',monospace;
+  --r:8px;--rlg:14px;--rxl:20px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:14px;line-height:1.5;min-height:100vh;padding-bottom:60px}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:#F0F0F0}
+::-webkit-scrollbar-thumb{background:#CCCCCC;border-radius:3px}
+
+/* HEADER */
+.hdr{background:var(--surface);border-bottom:1px solid var(--border);padding:0 1.5rem;height:56px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:300}
+.hdr-logo-wrap{display:flex;align-items:baseline;gap:10px}
+.hdr-logo{font-family:var(--serif);font-size:20px;font-style:italic;color:var(--blue)}
+.hdr-sub{font-family:var(--mono);font-size:10px;font-weight:400;letter-spacing:.14em;text-transform:uppercase;color:var(--text3)}
+.hdr-right{display:flex;align-items:center;gap:16px}
+.hdr-date{font-family:var(--mono);font-size:11px;color:var(--text3)}
+.hdr-backup-btn{font-family:var(--sans);font-size:11px;font-weight:600;padding:5px 11px;border-radius:20px;border:1px solid var(--border-md);background:var(--surface3);color:var(--text2);cursor:pointer;transition:all .12s;white-space:nowrap}
+.hdr-backup-btn:hover{border-color:var(--blue);color:var(--blue)}
+.hdr-backup-btn.import:hover{border-color:var(--green);color:var(--green)}
+
+.dl-banner{display:none;background:rgba(210,153,34,.15);border-bottom:2px solid var(--amber);padding:10px 1.5rem;align-items:center;gap:10px;font-size:13px;color:var(--amber)}
+.dl-banner.show{display:flex}
+.dl-dismiss{background:none;border:none;cursor:pointer;color:var(--amber);font-size:18px;line-height:1;padding:0 4px}
+
+/* NAV — sticky below header */
+.nav{background:var(--surface);border-bottom:1px solid var(--border);padding:0 1.5rem;display:flex;overflow-x:auto;position:sticky;top:56px;z-index:299}
+.ntab{font-family:var(--sans);font-size:13px;font-weight:500;color:var(--text3);background:none;border:none;border-bottom:2px solid transparent;padding:13px 16px;cursor:pointer;white-space:nowrap;transition:color .15s,border-color .15s}
+.ntab:hover{color:var(--text2)}
+.ntab.active{color:var(--blue);border-bottom-color:var(--blue)}
+.ntab .badge{display:inline-block;background:var(--red-bg);color:var(--red);font-size:10px;font-weight:600;padding:1px 5px;border-radius:20px;margin-left:5px}
+
+/* BOTTOM NAV — always visible */
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:#FFFFFF;border-top:1px solid var(--border);display:flex;z-index:400;overflow-x:auto}
+.bottom-nav .ntab{flex:1;padding:10px 8px;font-size:11px;text-align:center;border-bottom:none;border-top:2px solid transparent}
+.bottom-nav .ntab.active{border-top-color:var(--blue);border-bottom-color:transparent}
+
+/* BODY */
+.body{max-width:1200px;margin:0 auto;padding:1.5rem}
+.page{display:none}.page.active{display:block}
+.sec-title{font-family:var(--serif);font-size:21px;margin-bottom:3px}
+.sec-sub{font-size:12px;color:var(--text3);margin-bottom:1.25rem}
+
+/* CARD */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--rlg);overflow:hidden;margin-bottom:1.25rem}
+.card-head{padding:11px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--surface2)}
+.cht{font-family:var(--mono);font-size:10px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:var(--text3)}
+
+/* ── DAY CARDS (Tracker) ── */
+.day-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--rlg);overflow:hidden;margin-bottom:1.25rem}
+.day-card.today{border-color:var(--blue-dim)}
+.day-hdr{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--border);flex-wrap:wrap}
+.day-hdr.mon{background:rgba(232,99,122,.18)}
+.day-hdr.tue{background:rgba(244,163,90,.18)}
+.day-hdr.wed{background:rgba(86,191,170,.18)}
+.day-hdr.thu{background:rgba(91,155,213,.18)}
+.day-hdr.fri{background:rgba(168,124,195,.18)}
+.day-name{font-family:var(--serif);font-size:19px;font-style:italic}
+.day-note{font-size:11px;color:var(--text2);flex:1;margin-left:8px;font-style:italic;opacity:.85;min-width:100px}
+.day-date-chip{font-family:var(--mono);font-size:10px;color:var(--text3);background:var(--surface3);padding:2px 9px;border-radius:20px}
+.today-chip{font-family:var(--mono);font-size:9px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--blue);background:var(--blue-bg);border:1px solid var(--blue-dim);padding:2px 8px;border-radius:20px}
+
+/* ── BREAK/REST TIMER ── */
+.break-section{background:rgba(63,185,80,.04);border-top:1px solid var(--border);padding:10px 16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.break-label{font-family:var(--mono);font-size:10px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:var(--green);display:flex;align-items:center;gap:6px}
+.break-timer-display{font-family:var(--mono);font-size:15px;font-weight:500;color:var(--text);min-width:60px;text-align:center}
+.break-timer-display.running{color:var(--green)}
+.break-btn{height:28px;padding:0 10px;border-radius:20px;border:1px solid var(--border-md);background:var(--surface3);cursor:pointer;font-size:11px;font-weight:600;font-family:var(--sans);display:flex;align-items:center;gap:4px;transition:all .12s;color:var(--text2)}
+.break-btn:hover{border-color:var(--border-strong)}
+.break-btn.play{background:var(--green-bg);color:var(--green);border-color:transparent}
+.break-btn.pause{background:var(--amber-bg);color:var(--amber);border-color:transparent}
+.break-btn.end{background:var(--red-bg);color:var(--red);border-color:transparent}
+.break-total{font-family:var(--mono);font-size:11px;color:var(--text3);margin-left:auto}
+.break-log-toggle{font-size:11px;color:var(--text3);background:none;border:none;cursor:pointer;font-family:var(--sans);padding:2px 6px;border-radius:4px;transition:all .12s}
+.break-log-toggle:hover{background:var(--surface3);color:var(--text2)}
+.break-log-panel{display:none;border-top:1px solid var(--border);padding:8px 16px;background:rgba(0,0,0,.1)}
+.break-log-panel.open{display:block}
+.break-log-list{list-style:none;font-family:var(--mono);font-size:10px;color:var(--text3);line-height:2}
+.break-log-list li{border-bottom:1px solid var(--border)}
+.break-log-list li:last-child{border-bottom:none}
+.break-log-empty{font-size:11px;color:var(--text3);font-style:italic}
+
+/* TASK TABLE */
+.ttbl{width:100%;border-collapse:collapse;min-width:700px}
+.ttbl th{font-family:var(--mono);font-size:9px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:var(--text3);padding:6px 10px;text-align:left;border-bottom:1px solid var(--border);background:var(--surface2)}
+.ttr{border-bottom:1px solid var(--border);transition:background .1s}
+.ttr:last-child{border-bottom:none}
+.ttr:hover{background:var(--surface2)}
+.ttr.ph{border-left:3px solid var(--red)}
+.ttr.pm{border-left:3px solid var(--amber)}
+.ttr.pl{border-left:3px solid var(--blue)}
+.ttr.tdone{opacity:.4}
+.ttr td{padding:7px 10px;vertical-align:middle}
+.tnum{font-family:var(--mono);font-size:10px;color:var(--text3);width:28px;text-align:center}
+.tn-wrap{position:relative}
+.tn-input{width:100%;background:transparent;border:none;font-family:var(--sans);font-size:13px;color:var(--text);padding:2px 5px;border-radius:4px;transition:background .12s}
+.tn-input:focus{outline:none;background:var(--surface3)}
+.tn-input::placeholder{color:var(--text3)}
+.tn-arrow{position:absolute;right:4px;top:50%;transform:translateY(-50%);font-size:10px;color:var(--text3);cursor:pointer;background:var(--surface3);border:none;padding:1px 4px;border-radius:3px}
+.queue-dropdown{display:none;position:absolute;top:100%;left:0;right:0;background:var(--surface2);border:1px solid var(--border-md);border-radius:var(--r);box-shadow:0 6px 16px rgba(0,0,0,.3);z-index:100;max-height:200px;overflow-y:auto}
+.queue-dropdown.open{display:block}
+.qdd-item{padding:8px 12px;font-size:12px;cursor:pointer;border-bottom:1px solid var(--border);color:var(--text2);transition:background .1s;display:flex;align-items:center;gap:8px}
+.qdd-item:last-child{border-bottom:none}
+.qdd-item:hover{background:var(--surface3)}
+.qdd-tl-item{background:rgba(63,185,80,.03)}
+.qdd-tl-item:hover{background:var(--green-lt)}
+.qdd-section-hdr{font-family:var(--mono);font-size:9px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--text3);padding:5px 12px 3px;background:var(--surface3);border-bottom:1px solid var(--border);position:sticky;top:0}
+.tdisplay{font-family:var(--mono);font-size:12px;font-weight:500;color:var(--text2);display:block;text-align:center;margin-bottom:3px;cursor:pointer;border-radius:3px;padding:1px 3px;transition:background .12s}
+.tdisplay:hover{background:var(--surface3)}
+.tdisplay.running{color:var(--blue)}
+.tbtns{display:flex;gap:3px;justify-content:center}
+.tbtn{width:25px;height:25px;border-radius:50%;border:1px solid var(--border-md);background:var(--surface3);cursor:pointer;font-size:10px;display:flex;align-items:center;justify-content:center;transition:all .12s;color:var(--text2)}
+.tbtn:hover{border-color:var(--border-strong)}
+.tbtn-s{background:var(--green-bg);color:var(--green);border-color:transparent}
+.tbtn-p{background:var(--amber-bg);color:var(--amber);border-color:transparent}
+.tbtn-r{background:var(--green-bg);color:var(--green);border-color:transparent}
+.tbtn-d{background:var(--surface3);color:var(--text3);border-color:transparent;font-size:9px}
+.td-tot-wrap{display:flex;align-items:center;gap:4px}
+.td-tot{font-family:var(--mono);font-size:12px;color:var(--text2);cursor:pointer;border-radius:4px;padding:2px 4px;transition:background .12s}
+.td-tot:hover{background:var(--surface3)}
+.edit-pencil{font-size:10px;color:var(--text3);cursor:pointer}
+.schip{font-family:var(--mono);font-size:9px;font-weight:500;letter-spacing:.05em;text-transform:uppercase;padding:2px 6px;border-radius:20px;display:inline-block}
+.sc-idle{background:var(--surface3);color:var(--text3)}
+.sc-running{background:var(--blue-bg);color:var(--blue)}
+.sc-paused{background:var(--amber-bg);color:var(--amber)}
+.sc-done{background:var(--green-bg);color:var(--green)}
+.psel{width:100%;padding:3px 5px;border-radius:5px;border:1px solid var(--border);background:var(--surface3);font-family:var(--sans);font-size:11px;color:var(--text2)}
+.psel:focus{outline:none;border-color:var(--blue)}
+.delb{background:none;border:none;cursor:pointer;color:var(--text3);font-size:15px;padding:2px;border-radius:4px;transition:color .12s}
+.delb:hover{color:var(--red)}
+.add-row-btn{width:100%;padding:8px;border:none;background:transparent;cursor:pointer;font-family:var(--sans);font-size:12px;color:var(--text3);border-top:1px solid var(--border);transition:background .12s,color .12s}
+.add-row-btn:hover{background:var(--surface2);color:var(--text2)}
+.rem-row{border-top:1px solid var(--border);padding:8px 14px;display:flex;align-items:center;gap:8px;background:rgba(210,153,34,.04)}
+.rem-in{flex:1;border:none;background:transparent;font-family:var(--sans);font-size:12px;color:var(--amber);font-weight:500}
+.rem-in::placeholder{color:rgba(210,153,34,.35);font-weight:400}
+.rem-in:focus{outline:none}
+
+/* NOTE COLUMN */
+.note-in{width:100%;min-width:100px;background:transparent;border:none;font-family:var(--sans);font-size:12px;color:var(--text2);padding:3px 5px;border-radius:4px;resize:none;transition:background .12s;height:28px;overflow:hidden}
+.note-in:focus{outline:none;background:var(--surface3);height:52px}
+.note-in::placeholder{color:var(--text3)}
+
+/* ── WEEKLY CALENDAR VIEW ── */
+.wk-calendar{background:var(--surface);border:1px solid var(--border);border-radius:var(--rlg);overflow:hidden;margin-bottom:1.25rem}
+.wk-cal-title{background:var(--surface2);border-bottom:1px solid var(--border);padding:12px 18px;text-align:center}
+.wk-cal-title-text{font-family:var(--serif);font-size:16px;font-style:italic;color:var(--text2)}
+.wk-cal-grid{display:grid;grid-template-columns:repeat(5,1fr)}
+.wk-col-hdr{padding:10px 8px;text-align:center;font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:#fff;border-right:1px solid rgba(255,255,255,.12)}
+.wk-col-hdr:last-child{border-right:none}
+.wk-col-hdr.mon{background:var(--mon)}
+.wk-col-hdr.tue{background:var(--tue)}
+.wk-col-hdr.wed{background:var(--wed)}
+.wk-col-hdr.thu{background:var(--thu)}
+.wk-col-hdr.fri{background:var(--fri)}
+.wk-date-row{display:grid;grid-template-columns:repeat(5,1fr);border-bottom:1px solid var(--border)}
+.wk-date-cell{padding:8px;text-align:center;font-family:var(--mono);font-size:11px;color:var(--text3);border-right:1px solid var(--border);background:var(--surface2)}
+.wk-date-cell:last-child{border-right:none}
+.wk-tasks-row{display:grid;grid-template-columns:repeat(5,1fr)}
+.wk-task-col{padding:10px 10px;border-right:1px solid var(--border);min-height:180px;vertical-align:top}
+.wk-task-col:last-child{border-right:none}
+.wk-task-item{font-size:12px;color:var(--text2);padding:3px 0 4px;border-bottom:1px solid var(--border);line-height:1.5}
+.wk-task-item:last-child{border-bottom:none}
+.wk-task-empty{font-size:12px;color:var(--text3);font-style:italic;padding:4px 0}
+.wk-col-mon .wk-task-item{border-left:2px solid var(--mon);padding-left:6px}
+.wk-col-tue .wk-task-item{border-left:2px solid var(--tue);padding-left:6px}
+.wk-col-wed .wk-task-item{border-left:2px solid var(--wed);padding-left:6px}
+.wk-col-thu .wk-task-item{border-left:2px solid var(--thu);padding-left:6px}
+.wk-col-fri .wk-task-item{border-left:2px solid var(--fri);padding-left:6px}
+
+/* ── WEEKLY REPORT TAB ── */
+.wr-wrap{background:#fff;border-radius:var(--rlg);padding:20px;margin-bottom:1.5rem}
+.wr-table-container{margin-bottom:16px;overflow-x:auto}
+.wr-table{width:100%;border-collapse:collapse;font-family:Arial,sans-serif;font-size:13px}
+.wr-table th{background:#2d5a8e;color:#fff;padding:8px 12px;text-align:left;border:1px solid #1a3d6b;font-weight:600;font-size:12px}
+.wr-table td{padding:7px 12px;border:1px solid #c8d6e5;font-size:13px;color:#222;vertical-align:top}
+.wr-table tr:nth-child(even) td{background:#f0f5fb}
+.wr-table tr:nth-child(odd) td{background:#fff}
+.wr-table .day-hdr-cell{font-weight:700;color:#fff;padding:6px 12px;border:1px solid rgba(255,255,255,.3)}
+.day-hdr-cell.mon-bg{background:#E8637A}
+.day-hdr-cell.tue-bg{background:#F4A35A}
+.day-hdr-cell.wed-bg{background:#56BFAA}
+.day-hdr-cell.thu-bg{background:#5B9BD5}
+.day-hdr-cell.fri-bg{background:#A87CC3}
+.wr-title{font-family:Arial,sans-serif;font-size:18px;font-weight:700;color:#1a3d6b;text-align:center;margin-bottom:4px}
+.wr-period{font-family:Arial,sans-serif;font-size:12px;color:#666;text-align:center;margin-bottom:14px}
+.wr-copy-btn{background:#2d5a8e;color:#fff;border:none;padding:8px 18px;border-radius:6px;cursor:pointer;font-size:13px;font-weight:600;transition:opacity .15s}
+.wr-copy-btn:hover{opacity:.85}
+.wr-copy-note{font-size:11px;color:#666;margin-left:10px}
+
+/* Email sections in Weekly Report */
+.wr-email-section{background:var(--surface);border:1px solid var(--border);border-radius:var(--rlg);overflow:hidden;margin-bottom:1rem}
+.wr-email-hdr{background:var(--surface2);border-bottom:1px solid var(--border);padding:10px 16px;display:flex;align-items:center;justify-content:space-between}
+.wr-email-title{font-family:var(--mono);font-size:10px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:var(--blue)}
+.wr-email-body{padding:14px 16px}
+.wr-field-row{display:flex;gap:8px;margin-bottom:8px;align-items:center}
+.wr-field-label{font-family:var(--mono);font-size:10px;color:var(--text3);width:90px;flex-shrink:0;letter-spacing:.08em;text-transform:uppercase}
+.wr-field-in{flex:1;padding:6px 10px;border-radius:6px;border:1px solid var(--border-md);background:var(--surface3);font-family:var(--sans);font-size:13px;color:var(--text)}
+.wr-field-in:focus{outline:none;border-color:var(--blue)}
+.wr-textarea{width:100%;min-height:90px;padding:10px 12px;border-radius:var(--r);border:1px solid var(--border-md);background:var(--surface3);font-family:var(--sans);font-size:13px;color:var(--text);resize:vertical;line-height:1.7}
+.wr-textarea:focus{outline:none;border-color:var(--blue)}
+.wr-copy-row{display:flex;gap:8px;margin-top:8px;align-items:center}
+.wr-save-btn{padding:5px 14px;border-radius:20px;border:1px solid var(--blue-dim);background:var(--blue-bg);color:var(--blue);cursor:pointer;font-size:11px;font-weight:600;font-family:var(--sans);transition:opacity .15s}
+.wr-save-btn:hover{opacity:.8}
+.wr-saved-note{font-size:11px;color:var(--green);display:none}
+
+/* ── QUEUE ── */
+.q-filter-bar{display:flex;gap:6px;padding:10px 14px;border-bottom:1px solid var(--border);overflow-x:auto;background:var(--surface2)}
+.qfbtn{font-size:12px;font-weight:500;padding:4px 12px;border-radius:20px;border:1px solid var(--border-md);background:transparent;color:var(--text3);cursor:pointer;white-space:nowrap;transition:all .12s}
+.qfbtn:hover{background:var(--surface3)}
+.qfbtn.active{background:var(--text);color:var(--bg);border-color:transparent}
+.qfbtn.f-red.active{background:var(--red);color:#fff}
+.qfbtn.f-amber.active{background:var(--amber);color:#fff}
+.qfbtn.f-finance.active{background:var(--blue);color:#fff}
+.qfbtn.f-new.active{background:var(--purple);color:#fff}
+.q-add-area{padding:12px 14px;border-bottom:1px solid var(--border);display:flex;flex-direction:column;gap:8px}
+.q-add-row1{display:flex;gap:8px;align-items:center}
+.q-add-row2{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.qin{flex:1;padding:8px 11px;border-radius:var(--r);border:1px solid var(--border-md);background:var(--surface3);font-family:var(--sans);font-size:13px;color:var(--text)}
+.qin::placeholder{color:var(--text3)}
+.qin:focus{outline:none;border-color:var(--blue)}
+.qadd-btn{padding:8px 16px;border-radius:var(--r);border:none;background:var(--blue);color:#fff;font-family:var(--sans);font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;transition:opacity .15s}
+.qadd-btn:hover{opacity:.88}
+.qsel{padding:7px 10px;border-radius:var(--r);border:1px solid var(--border-md);background:var(--surface3);font-family:var(--sans);font-size:12px;color:var(--text2)}
+.qsel:focus{outline:none}
+.dl-input{padding:7px 10px;border-radius:var(--r);border:1px solid var(--border-md);background:var(--surface3);font-family:var(--mono);font-size:12px;color:var(--text2);color-scheme:dark}
+.dl-input:focus{outline:none;border-color:var(--amber)}
+.qi{padding:12px 14px;border-bottom:1px solid var(--border);display:flex;gap:10px;align-items:flex-start;transition:background .1s}
+.qi:last-child{border-bottom:none}
+.qi:hover{background:var(--surface2)}
+.qi.qi-red{border-left:3px solid var(--red)}
+.qi.qi-amber{border-left:3px solid var(--amber)}
+.qi.qi-gray{border-left:3px solid var(--gray)}
+.qi.qi-done{opacity:.35}
+.qi.qi-hidden{display:none}
+.qi-left{display:flex;flex-direction:column;align-items:center;gap:4px;flex-shrink:0;min-width:54px}
+.qi-urg{font-size:9px;font-weight:600;font-family:var(--mono);letter-spacing:.05em;text-transform:uppercase;padding:2px 7px;border-radius:4px}
+.urg-red{background:var(--red-bg);color:var(--red)}
+.urg-amber{background:var(--amber-bg);color:var(--amber)}
+.urg-gray{background:var(--gray-bg);color:var(--gray)}
+.qi-ts{font-family:var(--mono);font-size:9px;color:var(--text3);text-align:center;line-height:1.5}
+.qi-cat-badge{font-size:9px;font-weight:500;padding:1px 5px;border-radius:10px}
+.cat-fin{background:rgba(88,166,255,.15);color:var(--blue)}
+.cat-email{background:rgba(63,185,80,.15);color:var(--green)}
+.cat-new{background:var(--purple-bg);color:var(--purple)}
+.cat-dl{background:var(--red-bg);color:var(--red)}
+.cat-other{background:var(--surface3);color:var(--text3)}
+.qi-body{flex:1;min-width:0}
+.qi-title-row{display:flex;align-items:flex-start;gap:8px;margin-bottom:5px;flex-wrap:wrap}
+.qi-name-in{flex:1;min-width:100px;border:none;background:transparent;font-family:var(--sans);font-size:13px;font-weight:500;color:var(--text);padding:1px 4px;border-radius:4px}
+.qi-name-in:focus{outline:none;background:var(--surface3)}
+.qi-auto-pri{font-size:10px;padding:2px 7px;border-radius:20px;font-weight:500;flex-shrink:0}
+.ap-critical{background:var(--red-bg);color:var(--red)}
+.ap-high{background:var(--amber-bg);color:var(--amber)}
+.ap-medium{background:var(--blue-bg);color:var(--blue)}
+.ap-low{background:var(--surface3);color:var(--text3)}
+.qi-dl-disp{font-family:var(--mono);font-size:10px;color:var(--red);background:var(--red-bg);padding:2px 7px;border-radius:20px;flex-shrink:0}
+.qi-meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px}
+.qi-notes-tog{font-size:11px;color:var(--text3);cursor:pointer;background:none;border:none;font-family:var(--sans);padding:2px 6px;border-radius:4px;transition:all .12s}
+.qi-notes-tog:hover{background:var(--surface3);color:var(--text2)}
+.qi-pdf-btn{font-size:11px;color:var(--blue);cursor:pointer;background:none;border:1px solid rgba(88,166,255,.25);font-family:var(--sans);padding:2px 8px;border-radius:4px;transition:all .12s}
+.qi-pdf-btn:hover{background:var(--blue-bg)}
+.qi-notes-panel{display:none;margin-top:6px}.qi-notes-panel.open{display:block}
+.qi-notes-area{width:100%;min-height:70px;padding:8px 10px;border-radius:var(--r);border:1px solid var(--border);background:var(--surface3);font-family:var(--sans);font-size:12px;color:var(--text2);resize:vertical;line-height:1.6;margin-bottom:6px}
+.qi-notes-area:focus{outline:none;border-color:var(--blue)}
+.qi-right{display:flex;flex-direction:column;gap:6px;align-items:flex-end;flex-shrink:0}
+.qi-del-btn{background:none;border:none;cursor:pointer;color:var(--text3);font-size:18px;line-height:1;padding:0 4px;transition:color .12s}
+.qi-del-btn:hover{color:var(--red)}
+.qi-done-btn{font-size:11px;padding:3px 10px;border-radius:20px;border:1px solid var(--border-md);background:var(--green-bg);color:var(--green);cursor:pointer;font-family:var(--sans);font-weight:600;white-space:nowrap}
+.q-empty{padding:24px;text-align:center;font-size:13px;color:var(--text3)}
+.ai-explain-btn{padding:5px 12px;border-radius:var(--r);border:1px solid var(--blue-dim);background:var(--blue-bg);color:var(--blue);cursor:pointer;font-size:11px;font-weight:600;font-family:var(--sans);transition:opacity .15s}
+.ai-explain-btn:hover:not(:disabled){opacity:.8}
+.ai-explain-btn:disabled{opacity:.4;cursor:default}
+.ai-output{display:none;margin-top:8px;padding:10px 12px;border-radius:var(--r);border:1px solid var(--blue-dim);background:var(--surface3);font-size:12px;color:var(--text2);line-height:1.7;max-height:220px;overflow-y:auto}
+.ai-output.open{display:block}
+.ai-loading{color:var(--blue);font-style:italic}
+.pdf-file-in{display:none}
+.pdf-drop-zone{border:1px dashed var(--border-md);border-radius:var(--r);padding:12px;text-align:center;font-size:12px;color:var(--text3);cursor:pointer;margin-bottom:8px;transition:border-color .12s}
+.pdf-drop-zone:hover,.pdf-drop-zone.has-file{border-color:var(--blue);color:var(--blue)}
+
+/* ── EOD REPORT ── */
+.eod-top{display:flex;gap:8px;margin-bottom:1rem;align-items:center}
+.eod-btn{padding:8px 16px;border-radius:var(--r);border:1px solid var(--border-md);background:transparent;color:var(--text2);cursor:pointer;font-size:13px;font-family:var(--sans);transition:all .12s}
+.eod-btn:hover{background:var(--surface3)}
+.eod-btn.primary{background:var(--blue);color:#fff;border-color:transparent}
+.eod-btn.primary:hover{opacity:.88}
+.eod-week-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--rlg);overflow:hidden;margin-bottom:1rem}
+.eod-week-hdr{padding:14px 18px;border-bottom:1px solid var(--border);background:var(--surface2)}
+.eod-week-title{font-family:var(--serif);font-size:17px;font-style:italic;color:var(--text)}
+.eod-week-meta{font-family:var(--mono);font-size:11px;color:var(--text3);margin-top:3px}
+.eod-day-sec{padding:12px 18px;border-bottom:1px solid var(--border)}
+.eod-day-sec:last-child{border-bottom:none}
+.eod-day-label{display:flex;align-items:baseline;gap:10px;margin-bottom:8px}
+.eod-day-name{font-family:var(--serif);font-size:15px;font-style:italic;color:var(--text)}
+.eod-day-date{font-family:var(--mono);font-size:10px;color:var(--text3)}
+.eod-tline{display:flex;align-items:center;gap:8px;padding:3px 0;font-size:13px}
+.eod-tnum{font-family:var(--mono);font-size:10px;color:var(--text3);width:22px}
+.eod-tname{flex:1;color:var(--text2)}
+.eod-notasks{font-size:12px;color:var(--text3);font-style:italic}
+.sdiv{height:1rem}
+.copy-box{background:#FFFFFF;border:1px solid rgba(0,0,0,.12);border-radius:var(--r);padding:14px;font-family:var(--mono);font-size:11px;color:#444444;line-height:1.8;white-space:pre-wrap;min-height:80px;margin-bottom:12px;max-height:300px;overflow-y:auto}
+
+/* ── EOD HISTORY ── */
+.eod-history{background:var(--surface);border:1px solid var(--border);border-radius:var(--rlg);overflow:hidden;margin-top:1.5rem}
+.eod-history-hdr{background:var(--surface2);border-bottom:1px solid var(--border);padding:11px 16px;display:flex;align-items:center;justify-content:space-between}
+.eod-hist-week{margin-bottom:0}
+.eod-hist-week-hdr{background:var(--surface3);padding:8px 14px;border-bottom:1px solid var(--border);font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--text3)}
+.eod-hist-row{padding:8px 14px;border-bottom:1px solid var(--border);font-size:13px;color:var(--text2)}
+.eod-hist-row:last-child{border-bottom:none}
+.eod-hist-day{font-family:var(--mono);font-size:10px;color:var(--text3);width:80px;display:inline-block}
+.eod-hist-tasks{color:var(--text);font-size:12px}
+
+/* ── TASK LIST ── */
+.tl-top-bar{display:flex;align-items:center;gap:8px;margin-bottom:1rem;flex-wrap:wrap}
+.tl-day-filter{display:flex;gap:4px;flex-wrap:wrap}
+.tl-day-btn{padding:4px 12px;border-radius:20px;border:1px solid var(--border-md);background:transparent;font-size:12px;font-family:var(--sans);color:var(--text3);cursor:pointer;transition:all .12s}
+.tl-day-btn:hover{background:var(--surface3)}
+.tl-day-btn.active.all{background:var(--text);color:var(--bg)}
+.tl-day-btn.active.mon{background:var(--mon);color:#fff;border-color:transparent}
+.tl-day-btn.active.tue{background:var(--tue);color:#fff;border-color:transparent}
+.tl-day-btn.active.wed{background:var(--wed);color:#fff;border-color:transparent}
+.tl-day-btn.active.thu{background:var(--thu);color:#fff;border-color:transparent}
+.tl-day-btn.active.fri{background:var(--fri);color:#fff;border-color:transparent}
+.tl-add-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--rlg);overflow:hidden;margin-bottom:1rem}
+.tl-add-hdr{background:var(--surface2);border-bottom:1px solid var(--border);padding:9px 16px}
+.tl-add-hdr-txt{font-family:var(--mono);font-size:10px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:var(--text3)}
+.tl-add-form{padding:12px 16px;display:flex;flex-direction:column;gap:8px}
+.tl-form-row{display:flex;gap:8px;flex-wrap:wrap}
+.tl-in{padding:7px 10px;border-radius:var(--r);border:1px solid var(--border-md);background:var(--surface3);font-family:var(--sans);font-size:13px;color:var(--text)}
+.tl-in:focus{outline:none;border-color:var(--blue)}
+.tl-sel{padding:7px 10px;border-radius:var(--r);border:1px solid var(--border-md);background:var(--surface3);font-family:var(--sans);font-size:12px;color:var(--text2)}
+.tl-add-btn{padding:7px 16px;border-radius:var(--r);border:none;background:var(--blue);color:#fff;font-family:var(--sans);font-size:13px;font-weight:600;cursor:pointer;transition:opacity .15s;white-space:nowrap}
+.tl-add-btn:hover{opacity:.88}
+/* ── TASK CARDS (replaces table) ── */
+.tl-cards-grid{display:flex;flex-direction:column;gap:10px;padding:12px 14px}
+.tl-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--rlg);overflow:hidden;transition:box-shadow .15s}
+.tl-card:hover{box-shadow:0 2px 12px rgba(0,0,0,.08)}
+.tl-card-hdr{display:flex;align-items:center;gap:10px;padding:11px 14px;cursor:pointer;background:var(--surface2);transition:background .12s}
+.tl-card-hdr:hover{background:var(--surface3)}
+.tl-card-num{font-family:var(--mono);font-size:10px;color:var(--text3);min-width:18px;text-align:center}
+.tl-card-name{flex:1;font-size:13px;font-weight:600;color:var(--text);background:transparent;border:none;font-family:var(--sans);padding:2px 6px;border-radius:4px;transition:background .12s}
+.tl-card-name:focus{outline:none;background:var(--surface);border:1px solid var(--blue)}
+.tl-card-badges{display:flex;gap:5px;align-items:center;flex-shrink:0}
+.tl-card-progress{font-family:var(--mono);font-size:10px;color:var(--text3);background:var(--surface3);padding:2px 7px;border-radius:20px;white-space:nowrap}
+.tl-card-progress.done{background:var(--green-bg);color:var(--green)}
+.tl-card-chevron{color:var(--text3);font-size:10px;transition:transform .2s;flex-shrink:0}
+.tl-card-chevron.open{transform:rotate(180deg)}
+.tl-card-del{background:none;border:none;cursor:pointer;color:var(--text3);font-size:16px;padding:0 2px;border-radius:4px;transition:color .12s;flex-shrink:0;line-height:1}
+.tl-card-del:hover{color:var(--red)}
+.tl-card-body{display:none;border-top:1px solid var(--border)}
+.tl-card-body.open{display:block}
+.tl-card-meta{display:flex;gap:8px;align-items:center;padding:9px 14px;background:rgba(0,0,0,.02);border-bottom:1px solid var(--border);flex-wrap:wrap}
+.tl-notes-row{padding:9px 14px;border-bottom:1px solid var(--border)}
+.tl-notes-lbl{font-family:var(--mono);font-size:9px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);margin-bottom:4px}
+.tl-notes-in{width:100%;background:var(--surface3);border:1px solid var(--border);border-radius:var(--r);font-family:var(--sans);font-size:12px;color:var(--text2);padding:6px 10px;resize:none;line-height:1.5;min-height:34px;transition:border-color .12s}
+.tl-notes-in:focus{outline:none;border-color:var(--blue);background:var(--surface)}
+/* Checklist */
+.tl-checklist{padding:10px 14px}
+.tl-cl-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.tl-cl-lbl{font-family:var(--mono);font-size:9px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:var(--text3)}
+.tl-cl-add-btn{font-size:11px;font-weight:600;color:var(--blue);background:var(--blue-bg);border:none;padding:3px 10px;border-radius:20px;cursor:pointer;font-family:var(--sans);transition:opacity .15s}
+.tl-cl-add-btn:hover{opacity:.8}
+.tl-cl-items{display:flex;flex-direction:column;gap:4px;margin-bottom:8px}
+.tl-cl-item{display:flex;align-items:center;gap:8px;padding:5px 6px;border-radius:6px;transition:background .1s;group}
+.tl-cl-item:hover{background:var(--surface3)}
+.tl-cl-cb{width:15px;height:15px;accent-color:var(--blue);cursor:pointer;flex-shrink:0}
+.tl-cl-text{flex:1;background:transparent;border:none;font-family:var(--sans);font-size:12px;color:var(--text2);padding:1px 4px;border-radius:4px;transition:background .12s}
+.tl-cl-text:focus{outline:none;background:var(--surface3)}
+.tl-cl-text.checked{text-decoration:line-through;color:var(--text3)}
+.tl-cl-del{background:none;border:none;cursor:pointer;color:var(--text4);font-size:13px;padding:0 2px;border-radius:3px;transition:color .12s;line-height:1;opacity:0}
+.tl-cl-item:hover .tl-cl-del{opacity:1}
+.tl-cl-del:hover{color:var(--red)}
+.tl-cl-new-row{display:flex;gap:6px;align-items:center;margin-top:2px}
+.tl-cl-new-in{flex:1;padding:5px 9px;border-radius:var(--r);border:1px solid var(--border-md);background:var(--surface3);font-family:var(--sans);font-size:12px;color:var(--text)}
+.tl-cl-new-in:focus{outline:none;border-color:var(--blue)}
+.tl-cl-new-go{padding:5px 12px;border-radius:var(--r);border:none;background:var(--blue);color:#fff;font-size:12px;font-weight:600;cursor:pointer;font-family:var(--sans);transition:opacity .15s}
+.tl-cl-new-go:hover{opacity:.88}
+.tl-cl-empty{font-size:11px;color:var(--text3);font-style:italic;padding:4px 0}
+/* CHIPS */
+.freq-chip{font-family:var(--mono);font-size:9px;font-weight:500;padding:2px 6px;border-radius:20px;white-space:nowrap}
+.freq-daily{background:var(--green-bg);color:var(--green)}
+.freq-weekly{background:var(--blue-bg);color:var(--blue)}
+.freq-biweekly{background:var(--purple-bg);color:var(--purple)}
+.freq-monthly{background:var(--amber-bg);color:var(--amber)}
+.freq-bimonthly,.freq-quarterly,.freq-yearly{background:var(--gray-bg);color:var(--gray)}
+.freq-onetime{background:var(--red-bg);color:var(--red)}
+.tl-day-tag{font-family:var(--mono);font-size:9px;font-weight:500;padding:2px 7px;border-radius:20px;white-space:nowrap}
+.tl-day-tag.mon{background:rgba(232,99,122,.2);color:var(--mon)}
+.tl-day-tag.tue{background:rgba(244,163,90,.2);color:var(--tue)}
+.tl-day-tag.wed{background:rgba(86,191,170,.2);color:var(--wed)}
+.tl-day-tag.thu{background:rgba(91,155,213,.2);color:var(--thu)}
+.tl-day-tag.fri{background:rgba(168,124,195,.2);color:var(--fri)}
+.tl-day-tag.everyday{background:var(--surface3);color:var(--text2)}
+.tl-del-btn{background:none;border:none;cursor:pointer;color:var(--text3);font-size:16px;padding:2px;border-radius:4px;transition:color .12s}
+.tl-del-btn:hover{color:var(--red)}
+.tl-week-view{margin-top:1.5rem}
+.tl-week-title{font-family:var(--serif);font-size:17px;font-style:italic;margin-bottom:2px}
+.tl-week-sub{font-size:12px;color:var(--text3);margin-bottom:.8rem}
+.tl-week-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}
+.tl-week-col{background:var(--surface);border:1px solid var(--border);border-radius:var(--rlg);overflow:hidden}
+.tl-week-col-hdr{padding:8px 12px;font-family:var(--mono);font-size:10px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:#fff}
+.tl-week-col-hdr.mon{background:var(--mon)}
+.tl-week-col-hdr.tue{background:var(--tue)}
+.tl-week-col-hdr.wed{background:var(--wed)}
+.tl-week-col-hdr.thu{background:var(--thu)}
+.tl-week-col-hdr.fri{background:var(--fri)}
+.tl-week-col-body{padding:8px 12px}
+.tl-week-item{font-size:12px;color:var(--text2);padding:4px 0;border-bottom:1px solid var(--border);line-height:1.5}
+.tl-week-item:last-child{border-bottom:none}
+.tl-freq-small{font-family:var(--mono);font-size:9px;color:var(--text3)}
+.tl-week-empty{font-size:11px;color:var(--text3);font-style:italic;padding:4px 0}
+.tl-empty{padding:20px;text-align:center;color:var(--text3);font-size:12px;font-style:italic}
+
+/* ── REMINDERS ── */
+.rem-add-area{padding:14px 16px;border-bottom:1px solid var(--border);display:flex;flex-direction:column;gap:8px}
+.rem-add-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.rem-in2{padding:7px 10px;border-radius:var(--r);border:1px solid var(--border-md);background:var(--surface3);font-family:var(--sans);font-size:13px;color:var(--text)}
+.rem-in2:focus{outline:none;border-color:var(--blue)}
+.rem-type-sel{padding:7px 10px;border-radius:var(--r);border:1px solid var(--border-md);background:var(--surface3);font-family:var(--sans);font-size:12px;color:var(--text2)}
+.rem-add-btn{padding:7px 16px;border-radius:var(--r);border:none;background:var(--blue);color:#fff;font-family:var(--sans);font-size:13px;font-weight:600;cursor:pointer;transition:opacity .15s}
+.rem-add-btn:hover{opacity:.88}
+.rem-body-in{padding:8px 10px;border-radius:var(--r);border:1px solid var(--border-md);background:var(--surface3);font-family:var(--sans);font-size:13px;color:var(--text);min-height:70px;resize:vertical;width:100%}
+.rem-body-in:focus{outline:none;border-color:var(--blue)}
+.rem-item{border-bottom:1px solid var(--border)}
+.rem-item:last-child{border-bottom:none}
+.rem-subject-row{display:flex;align-items:center;gap:8px;padding:10px 14px;cursor:pointer;transition:background .1s}
+.rem-subject-row:hover{background:var(--surface2)}
+.rem-subject-icon{flex-shrink:0}
+.rem-subject-text{flex:1;font-size:13px;font-weight:500;color:var(--text)}
+.rem-type-badge{font-size:9px;font-weight:600;padding:2px 7px;border-radius:20px;flex-shrink:0}
+.rtb-note{background:var(--surface3);color:var(--text2)}
+.rtb-email{background:var(--blue-bg);color:var(--blue)}
+.rtb-template{background:var(--purple-bg);color:var(--purple)}
+.rem-del{background:none;border:none;cursor:pointer;color:var(--text3);font-size:16px;padding:0 4px;transition:color .12s;flex-shrink:0}
+.rem-del:hover{color:var(--red)}
+.rem-chevron{color:var(--text3);transition:transform .2s;flex-shrink:0}
+.rem-chevron.open{transform:rotate(180deg)}
+.rem-body-panel{display:none;padding:12px 14px 14px;border-top:1px solid var(--border);background:rgba(0,0,0,.06)}
+.rem-body-panel.open{display:block}
+.rem-body-text{font-size:13px;color:var(--text2);line-height:1.8;white-space:pre-wrap;margin-bottom:8px}
+.rem-edit-btn{font-size:11px;padding:3px 10px;border-radius:20px;border:1px solid var(--border-md);background:transparent;color:var(--text3);cursor:pointer;font-family:var(--sans)}
+.rem-edit-area{width:100%;min-height:80px;padding:8px 10px;border-radius:var(--r);border:1px solid var(--border-md);background:var(--surface3);font-family:var(--sans);font-size:13px;color:var(--text);resize:vertical;display:none;margin-bottom:6px}
+.rem-edit-area:focus{outline:none;border-color:var(--blue)}
+.rem-save-btn{display:none;padding:5px 14px;border-radius:20px;border:none;background:var(--blue);color:#fff;cursor:pointer;font-size:12px;font-family:var(--sans);font-weight:600}
+.rem-empty{padding:20px;text-align:center;font-size:13px;color:var(--text3);font-style:italic}
+
+/* ── CALENDAR TAB ── */
+.cal-wrap{margin-bottom:1.5rem}
+.cal-month-nav{display:flex;align-items:center;justify-content:center;gap:16px;margin-bottom:12px}
+.cal-nav-btn{background:var(--surface2);border:1px solid var(--border-md);color:var(--text2);border-radius:var(--r);padding:5px 14px;cursor:pointer;font-size:14px;font-family:var(--sans);transition:all .12s}
+.cal-nav-btn:hover{background:var(--surface3)}
+.cal-month-label{font-family:var(--serif);font-size:20px;font-style:italic;color:var(--text);min-width:200px;text-align:center}
+.cal-grid-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--rlg);overflow:hidden;margin-bottom:1.5rem}
+.cal-dow-hdr{display:grid;grid-template-columns:repeat(7,1fr);background:var(--surface2);border-bottom:1px solid var(--border)}
+.cal-dow-cell{padding:8px 4px;text-align:center;font-family:var(--mono);font-size:9px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:var(--text3)}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr)}
+.cal-cell{min-height:80px;border-right:1px solid var(--border);border-bottom:1px solid var(--border);padding:6px;cursor:pointer;transition:background .12s;position:relative}
+.cal-cell:nth-child(7n){border-right:none}
+.cal-cell:hover{background:var(--surface2)}
+.cal-cell.other-month{opacity:.35}
+.cal-cell.today-cell{background:var(--blue-bg);border-color:var(--blue-dim)}
+.cal-cell.has-reminder{outline:2px solid var(--amber);outline-offset:-2px}
+.cal-cell.urgent-reminder{outline:2px solid var(--red);outline-offset:-2px;animation:urgentPulse 1s infinite alternate}
+@keyframes urgentPulse{from{background:transparent}to{background:rgba(248,81,73,.12)}}
+.cal-day-num{font-family:var(--mono);font-size:11px;font-weight:500;color:var(--text3);margin-bottom:3px}
+.cal-cell.today-cell .cal-day-num{color:var(--blue);background:var(--blue);color:#fff;width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px}
+.cal-entry{font-size:9px;padding:1px 4px;border-radius:3px;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:500}
+.cal-color-blue{background:rgba(88,166,255,.22);color:var(--blue)}
+.cal-color-green{background:rgba(63,185,80,.22);color:var(--green)}
+.cal-color-red{background:rgba(248,81,73,.22);color:var(--red)}
+.cal-color-amber{background:rgba(210,153,34,.22);color:var(--amber)}
+.cal-color-purple{background:rgba(188,140,255,.22);color:var(--purple)}
+.cal-color-gray{background:var(--gray-bg);color:var(--text2)}
+.cal-reminder-dot{width:6px;height:6px;border-radius:50%;background:var(--amber);position:absolute;top:5px;right:5px}
+.cal-urgent-flag{position:absolute;top:4px;right:4px;font-size:9px;animation:urgentPulse 0.8s infinite alternate}
+
+/* Calendar entry modal */
+.cal-modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:600;align-items:center;justify-content:center}
+.cal-modal-overlay.open{display:flex}
+.cal-modal{background:var(--surface2);border:1px solid var(--border-md);border-radius:var(--rxl);padding:24px;width:440px;max-width:95vw;max-height:90vh;overflow-y:auto;box-shadow:0 12px 36px rgba(0,0,0,.5)}
+.cal-modal-title{font-family:var(--serif);font-size:17px;margin-bottom:14px;color:var(--text)}
+.cal-form-row{margin-bottom:10px;display:flex;flex-direction:column;gap:4px}
+.cal-form-label{font-family:var(--mono);font-size:9px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:var(--text3)}
+.cal-form-in{padding:7px 10px;border-radius:var(--r);border:1px solid var(--border-md);background:var(--surface3);font-family:var(--sans);font-size:13px;color:var(--text);width:100%}
+.cal-form-in:focus{outline:none;border-color:var(--blue)}
+.cal-form-textarea{min-height:70px;resize:vertical}
+.cal-color-pick{display:flex;gap:8px;flex-wrap:wrap}
+.cal-color-swatch{width:24px;height:24px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:transform .12s}
+.cal-color-swatch:hover{transform:scale(1.15)}
+.cal-color-swatch.selected{border-color:#fff;transform:scale(1.15)}
+.cal-reminder-opts{display:flex;flex-direction:column;gap:6px}
+.cal-rem-row{display:flex;align-items:center;gap:8px}
+.cal-rem-check{width:16px;height:16px;accent-color:var(--blue)}
+.cal-rem-label{font-size:13px;color:var(--text2)}
+.cal-time-in{padding:5px 8px;border-radius:var(--r);border:1px solid var(--border-md);background:var(--surface3);font-family:var(--mono);font-size:12px;color:var(--text);color-scheme:dark}
+.cal-modal-btns{display:flex;gap:8px;margin-top:16px}
+.cal-modal-btn{flex:1;padding:9px;border-radius:var(--r);border:1px solid var(--border-md);background:transparent;font-family:var(--sans);font-size:13px;cursor:pointer;color:var(--text2);transition:background .12s}
+.cal-modal-btn:hover{background:var(--surface3)}
+.cal-modal-btn.ok{background:var(--blue);color:#fff;border-color:transparent}
+.cal-modal-btn.del{background:var(--red-bg);color:var(--red);border-color:transparent}
+
+/* Year calendar */
+.yr-cal-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--rlg);overflow:hidden;margin-top:2rem}
+.yr-cal-title{background:var(--surface2);border-bottom:1px solid var(--border);padding:12px 18px;text-align:center;font-family:var(--serif);font-size:18px;font-style:italic;color:var(--text2)}
+.yr-cal-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:0;padding:16px;gap:16px}
+.yr-month{background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);overflow:hidden}
+.yr-month-name{background:var(--surface3);padding:6px 10px;text-align:center;font-family:var(--mono);font-size:10px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:var(--text3)}
+.yr-dow-row{display:grid;grid-template-columns:repeat(7,1fr);border-bottom:1px solid var(--border)}
+.yr-dow-cell{padding:3px 2px;text-align:center;font-family:var(--mono);font-size:8px;color:var(--text3)}
+.yr-grid{display:grid;grid-template-columns:repeat(7,1fr)}
+.yr-cell{min-height:22px;border-right:1px solid var(--border);border-bottom:1px solid var(--border);text-align:center;padding:2px;cursor:pointer;transition:background .1s;font-family:var(--mono);font-size:9px;color:var(--text3);position:relative}
+.yr-cell:nth-child(7n){border-right:none}
+.yr-cell:hover{background:var(--surface3)}
+.yr-cell.other-m{opacity:.25}
+.yr-cell.today-yr{background:var(--blue-bg);color:var(--blue);font-weight:700}
+.yr-cell.has-entry{color:var(--text);font-weight:600}
+.yr-cell.has-entry::after{content:'';width:4px;height:4px;border-radius:50%;background:var(--blue);position:absolute;bottom:1px;left:50%;transform:translateX(-50%)}
+.yr-cell.has-reminder-yr::after{background:var(--amber)}
+
+/* CALENDAR ALERTS in Tracker */
+.cal-alert-banner{display:none;background:rgba(248,81,73,.12);border:1px solid var(--red);border-radius:var(--r);padding:10px 14px;margin-bottom:12px;font-size:13px;color:var(--red);animation:urgentPulse 1s infinite alternate}
+.cal-alert-banner.show{display:block}
+.cal-alert-item{display:flex;align-items:center;gap:8px;padding:2px 0}
+.cal-alert-close{background:none;border:none;cursor:pointer;color:var(--red);font-size:16px;float:right;padding:0}
+
+/* MODAL */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:500;align-items:center;justify-content:center}
+.modal-overlay.open{display:flex}
+.modal{background:var(--surface2);border:1px solid var(--border-md);border-radius:var(--rxl);padding:24px;width:320px;box-shadow:0 10px 30px rgba(0,0,0,.4)}
+.modal-title{font-family:var(--serif);font-size:17px;margin-bottom:10px;color:var(--text)}
+.modal p{font-size:12px;color:var(--text3);margin-bottom:12px}
+.modal input{width:100%;padding:10px 12px;border-radius:var(--r);border:1px solid var(--border-md);background:var(--surface3);font-family:var(--mono);font-size:15px;color:var(--text);text-align:center;margin-bottom:14px}
+.modal input:focus{outline:none;border-color:var(--blue)}
+.modal-btns{display:flex;gap:8px}
+.modal-btn{flex:1;padding:9px;border-radius:var(--r);border:1px solid var(--border-md);background:transparent;font-family:var(--sans);font-size:13px;cursor:pointer;color:var(--text2);transition:background .12s}
+.modal-btn:hover{background:var(--surface3)}
+.modal-btn.ok{background:var(--blue);color:#fff;border-color:transparent}
+.modal-btn.ok:hover{opacity:.88;background:var(--blue)}
+
+/* ── AUTO-SAVE INDICATOR ── */
+.save-indicator{display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:10px;letter-spacing:.06em;color:var(--text3);padding:4px 10px;border-radius:20px;border:1px solid var(--border);background:var(--surface2);white-space:nowrap;transition:all .2s}
+.save-indicator.saved{color:var(--green);border-color:rgba(63,185,80,.3);background:var(--green-bg)}
+.save-indicator.saving{color:var(--blue);border-color:rgba(88,166,255,.3);background:var(--blue-bg)}
+.save-indicator.error{color:var(--red);border-color:rgba(248,81,73,.3);background:var(--red-bg)}
+.save-dot{width:6px;height:6px;border-radius:50%;background:currentColor;flex-shrink:0}
+.save-dot.pulse{animation:savePulse .8s ease-in-out infinite alternate}
+.setup-btn{font-family:var(--sans);font-size:11px;font-weight:700;padding:5px 12px;border-radius:20px;border:2px solid var(--blue-dim);background:var(--blue-bg);color:var(--blue);cursor:pointer;transition:all .15s;white-space:nowrap;animation:setupPulse 2s ease-in-out infinite}
+.setup-btn:hover{background:var(--blue);color:#fff;animation:none}
+.setup-btn.linked{animation:none;border-color:rgba(63,185,80,.4);background:var(--green-bg);color:var(--green);font-weight:600}
+.setup-btn.linked:hover{background:var(--green);color:#fff}
+@keyframes savePulse{from{opacity:.4}to{opacity:1}}
+@keyframes setupPulse{0%,100%{box-shadow:0 0 0 0 rgba(88,166,255,.4)}50%{box-shadow:0 0 0 5px rgba(88,166,255,0)}}
+
+@media(max-width:800px){
+  .body{padding:1rem}
+  .wk-cal-grid,.wk-date-row,.wk-tasks-row{grid-template-columns:1fr}
+  .tl-week-grid{grid-template-columns:1fr 1fr}
+  .hdr,.nav{padding:0 1rem}
+  .yr-cal-grid{grid-template-columns:repeat(2,1fr)}
+}
+@media(max-width:500px){
+  .yr-cal-grid{grid-template-columns:1fr}
+}
+
+/* ── CLOUD SYNC ── */
+.cloud-btn{font-family:var(--sans);font-size:11px;font-weight:700;padding:5px 12px;border-radius:20px;border:2px solid rgba(63,185,80,.4);background:var(--green-bg);color:var(--green);cursor:pointer;transition:all .15s;white-space:nowrap}
+.cloud-btn:hover{background:var(--green);color:#fff}
+.cloud-btn.setup-needed{border-color:rgba(210,153,34,.5);background:var(--amber-bg);color:var(--amber);animation:setupPulse 2s ease-in-out infinite}
+.cloud-btn.setup-needed:hover{background:var(--amber);color:#fff;animation:none}
+.share-btn{font-family:var(--sans);font-size:11px;font-weight:600;padding:5px 11px;border-radius:20px;border:1px solid var(--border-md);background:var(--surface3);color:var(--text2);cursor:pointer;transition:all .12s;white-space:nowrap}
+.share-btn:hover{border-color:var(--blue);color:var(--blue)}
+.view-mode-badge{font-family:var(--mono);font-size:10px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--amber);background:var(--amber-bg);border:1px solid rgba(210,153,34,.3);padding:3px 9px;border-radius:20px;display:none}
+.view-mode-badge.show{display:inline-block}
+
+/* SHARE MODAL */
+.share-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:600;align-items:center;justify-content:center}
+.share-overlay.open{display:flex}
+.share-modal{background:#fff;border:1px solid var(--border-md);border-radius:var(--rxl);padding:0;width:460px;max-width:94vw;box-shadow:0 12px 40px rgba(0,0,0,.3);overflow:hidden}
+.share-modal-hdr{background:var(--surface2);border-bottom:1px solid var(--border);padding:16px 20px;display:flex;align-items:center;justify-content:space-between}
+.share-modal-title{font-family:var(--serif);font-size:18px;color:var(--text)}
+.share-close{background:none;border:none;font-size:20px;cursor:pointer;color:var(--text3);padding:0 4px;line-height:1}
+.share-modal-body{padding:20px}
+.share-section{margin-bottom:18px}
+.share-section-label{font-family:var(--mono);font-size:10px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);margin-bottom:6px}
+.share-link-row{display:flex;gap:6px;align-items:center}
+.share-link-input{flex:1;padding:8px 11px;border-radius:var(--r);border:1px solid var(--border-md);background:var(--surface3);font-family:var(--mono);font-size:11px;color:var(--text2)}
+.share-copy-btn{padding:7px 13px;border-radius:var(--r);border:1px solid var(--blue-dim);background:var(--blue-bg);color:var(--blue);cursor:pointer;font-size:11px;font-weight:600;font-family:var(--sans);white-space:nowrap;transition:opacity .15s}
+.share-copy-btn:hover{opacity:.8}
+.share-note{font-size:11px;color:var(--text3);margin-top:5px;line-height:1.5}
+.share-mode-badge{display:inline-block;font-family:var(--mono);font-size:9px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;padding:2px 7px;border-radius:20px}
+.smb-view{background:var(--amber-bg);color:var(--amber)}
+.smb-edit{background:var(--green-bg);color:var(--green)}
+.share-divider{border:none;border-top:1px solid var(--border);margin:16px 0}
+.pin-row{display:flex;gap:6px;align-items:center;margin-top:6px}
+.pin-input{flex:1;padding:8px 11px;border-radius:var(--r);border:1px solid var(--border-md);background:var(--surface3);font-family:var(--mono);font-size:14px;color:var(--text);text-align:center;letter-spacing:.2em}
+.pin-input:focus{outline:none;border-color:var(--blue)}
+.pin-set-btn{padding:7px 13px;border-radius:var(--r);border:none;background:var(--green);color:#fff;cursor:pointer;font-size:11px;font-weight:600;font-family:var(--sans);white-space:nowrap}
+.ws-id-display{font-family:var(--mono);font-size:11px;color:var(--text3);background:var(--surface3);padding:6px 10px;border-radius:var(--r);word-break:break-all;margin-top:4px}
+
+/* SETUP OVERLAY */
+.setup-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:700;align-items:center;justify-content:center}
+.setup-overlay.open{display:flex}
+.setup-card{background:#fff;border-radius:var(--rxl);padding:0;width:520px;max-width:95vw;box-shadow:0 16px 50px rgba(0,0,0,.4);overflow:hidden;max-height:90vh;overflow-y:auto}
+.setup-card-hdr{background:linear-gradient(135deg,#1a3d6b,#2d5a8e);padding:22px 24px;color:#fff}
+.setup-card-hdr h2{font-family:var(--serif);font-size:22px;font-style:italic;margin-bottom:4px}
+.setup-card-hdr p{font-size:12px;opacity:.8;line-height:1.5}
+.setup-steps{padding:20px 24px}
+.setup-step{margin-bottom:16px}
+.setup-step-num{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:var(--blue);color:#fff;font-size:10px;font-weight:700;font-family:var(--mono);margin-right:8px;flex-shrink:0}
+.setup-step-title{font-weight:600;font-size:13px;color:var(--text);display:flex;align-items:center}
+.setup-step-body{font-size:12px;color:var(--text2);margin-top:5px;margin-left:30px;line-height:1.6}
+.setup-step-body a{color:var(--blue)}
+.setup-config-area{width:100%;min-height:100px;padding:10px 12px;border-radius:var(--r);border:1px solid var(--border-md);background:var(--surface3);font-family:var(--mono);font-size:11px;color:var(--text);resize:vertical;line-height:1.5}
+.setup-config-area:focus{outline:none;border-color:var(--blue)}
+.setup-actions{padding:0 24px 20px;display:flex;gap:8px;flex-wrap:wrap}
+.setup-apply-btn{padding:10px 20px;border-radius:var(--r);border:none;background:var(--blue);color:#fff;cursor:pointer;font-size:13px;font-weight:600;font-family:var(--sans)}
+.setup-skip-btn{padding:10px 16px;border-radius:var(--r);border:1px solid var(--border-md);background:transparent;cursor:pointer;font-size:13px;font-family:var(--sans);color:var(--text3)}
+.setup-error{font-size:12px;color:var(--red);margin-top:6px;display:none}
+
+/* VIEW MODE — disable all editing */
+body.view-mode input:not(.share-link-input):not(.pin-input):not([type=file]):not([type=datetime-local]):not([type=time]):not([type=checkbox]):not([type=text].cal-form-in):not(.wr-field-in):not(.wr-textarea){pointer-events:none!important;opacity:.7}
+body.view-mode textarea{pointer-events:none!important;opacity:.7}
+body.view-mode select{pointer-events:none!important;opacity:.7}
+body.view-mode button:not(.ntab):not(.hdr-backup-btn):not(.share-btn):not(.cloud-btn):not(.share-copy-btn):not(.break-log-toggle):not(.qi-notes-tog):not(.rem-del):not(.cal-alert-close):not(.dl-dismiss):not(.break-log-toggle):not(.cal-modal-btn):not(.share-close):not(.eod-btn){pointer-events:none!important;opacity:.5}
+</style>
+</head>
+<body>
+
+<!-- Share Modal -->
+<div class="share-overlay" id="share-overlay">
+  <div class="share-modal">
+    <div class="share-modal-hdr">
+      <span class="share-modal-title">🔗 Share Workspace</span>
+      <button class="share-close" onclick="closeShare()">×</button>
+    </div>
+    <div class="share-modal-body">
+      <div id="share-no-cloud" style="background:var(--amber-bg);border:1px solid rgba(210,153,34,.4);border-radius:var(--r);padding:10px 14px;font-size:12px;color:var(--amber);margin-bottom:14px;display:none">
+        ⚠️ Cloud sync not set up yet. Set up Firebase first so shared links can access your data.
+        <button style="margin-left:8px;background:var(--amber);color:#fff;border:none;padding:3px 9px;border-radius:4px;cursor:pointer;font-size:11px" onclick="closeShare();openSetup()">Setup Now</button>
+      </div>
+      <div class="share-section">
+        <div class="share-section-label">Workspace ID</div>
+        <div class="ws-id-display" id="ws-id-display">—</div>
+      </div>
+      <hr class="share-divider">
+      <div class="share-section">
+        <div class="share-section-label">👁 View-Only Link <span class="share-mode-badge smb-view">Read only</span></div>
+        <div class="share-link-row">
+          <input class="share-link-input" id="share-view-link" readonly>
+          <button class="share-copy-btn" onclick="copyShareLink('view')">Copy</button>
+        </div>
+        <div class="share-note">People with this link can see your workspace but cannot make changes.</div>
+      </div>
+      <hr class="share-divider">
+      <div class="share-section">
+        <div class="share-section-label">✏️ Edit Link <span class="share-mode-badge smb-edit">Can edit</span></div>
+        <div class="share-link-row">
+          <input class="share-link-input" id="share-edit-link" readonly>
+          <button class="share-copy-btn" onclick="copyShareLink('edit')">Copy</button>
+        </div>
+        <div class="share-note">Share this only with people you trust — they can add, edit, and delete data.</div>
+      </div>
+      <hr class="share-divider">
+      <div class="share-section">
+        <div class="share-section-label">🔧 Hosting Instructions</div>
+        <div class="share-note" style="line-height:1.8">
+          For share links to work, this file must be hosted online:<br>
+          1. Upload <code>asn_workspace_v9.html</code> to <a href="https://app.netlify.com/drop" target="_blank">Netlify Drop</a> (free, drag &amp; drop)<br>
+          2. You'll get a URL like <code>https://abc123.netlify.app/asn_workspace_v9.html</code><br>
+          3. Add <code>#ws=YOUR_ID</code> to the end of that URL to share your workspace
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Firebase Setup Overlay -->
+<div class="setup-overlay" id="setup-overlay">
+  <div class="setup-card">
+    <div class="setup-card-hdr">
+      <h2>☁️ Set Up Cloud Sync</h2>
+      <p>One-time setup. After this, your data syncs across all browsers and devices automatically — forever, for free.</p>
+    </div>
+    <div class="setup-steps">
+      <div class="setup-step">
+        <div class="setup-step-title"><span class="setup-step-num">1</span>Create a free Firebase project</div>
+        <div class="setup-step-body">
+          Go to <a href="https://console.firebase.google.com" target="_blank">console.firebase.google.com</a> → "Add project" → give it any name → Continue → Disable Google Analytics (optional) → Create project.
+        </div>
+      </div>
+      <div class="setup-step">
+        <div class="setup-step-title"><span class="setup-step-num">2</span>Add a Web App &amp; copy config</div>
+        <div class="setup-step-body">
+          In your project → click the <b>&lt;/&gt;</b> Web icon → Register app (any nickname) → Copy the <code>firebaseConfig</code> object shown.
+        </div>
+      </div>
+      <div class="setup-step">
+        <div class="setup-step-title"><span class="setup-step-num">3</span>Enable Firestore Database</div>
+        <div class="setup-step-body">
+          Sidebar → Build → Firestore Database → Create database → Start in <b>test mode</b> → Choose your region → Done.
+        </div>
+      </div>
+      <div class="setup-step">
+        <div class="setup-step-title"><span class="setup-step-num">4</span>Paste your config below</div>
+        <div class="setup-step-body">
+          Paste only the config object (curly braces and all):
+          <textarea class="setup-config-area" id="setup-config-input" placeholder='{ apiKey: "AIza...", authDomain: "...", projectId: "...", storageBucket: "...", messagingSenderId: "...", appId: "..." }'></textarea>
+          <div class="setup-error" id="setup-error"></div>
+        </div>
+      </div>
+    </div>
+    <div class="setup-actions">
+      <button class="setup-apply-btn" onclick="applyFirebaseConfig()">✓ Connect &amp; Save</button>
+      <button class="setup-skip-btn" onclick="skipSetup()">Skip — use local storage only</button>
+    </div>
+  </div>
+</div>
+
+<!-- Time Edit Modal -->
+<div class="modal-overlay" id="time-modal">
+  <div class="modal">
+    <div class="modal-title">Edit time</div>
+    <p>Enter time in HH:MM format (e.g. 1:30 for 1 hr 30 min)</p>
+    <input type="text" id="modal-input" placeholder="H:MM">
+    <div class="modal-btns">
+      <button class="modal-btn" onclick="closeModal()">Cancel</button>
+      <button class="modal-btn ok" onclick="saveModal()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Calendar Entry Modal -->
+<div class="cal-modal-overlay" id="cal-modal">
+  <div class="cal-modal">
+    <div class="cal-modal-title" id="cal-modal-date-title">Add entry</div>
+    <div class="cal-form-row">
+      <div class="cal-form-label">Note / Task</div>
+      <input type="text" class="cal-form-in" id="cal-entry-text" placeholder="Enter note or task...">
+    </div>
+    <div class="cal-form-row">
+      <div class="cal-form-label">Tag</div>
+      <input type="text" class="cal-form-in" id="cal-entry-tag" placeholder="e.g. Meeting, Follow-up, Deadline...">
+    </div>
+    <div class="cal-form-row">
+      <div class="cal-form-label">Color</div>
+      <div class="cal-color-pick">
+        <div class="cal-color-swatch selected" data-color="blue" style="background:#58A6FF" onclick="selectCalColor('blue',this)"></div>
+        <div class="cal-color-swatch" data-color="green" style="background:#3FB950" onclick="selectCalColor('green',this)"></div>
+        <div class="cal-color-swatch" data-color="red" style="background:#F85149" onclick="selectCalColor('red',this)"></div>
+        <div class="cal-color-swatch" data-color="amber" style="background:#D29922" onclick="selectCalColor('amber',this)"></div>
+        <div class="cal-color-swatch" data-color="purple" style="background:#BC8CFF" onclick="selectCalColor('purple',this)"></div>
+        <div class="cal-color-swatch" data-color="gray" style="background:#6E7681" onclick="selectCalColor('gray',this)"></div>
+      </div>
+    </div>
+    <div class="cal-form-row">
+      <div class="cal-form-label">Reminder time</div>
+      <input type="time" class="cal-form-in cal-time-in" id="cal-entry-time" style="width:auto">
+    </div>
+    <div class="cal-form-row">
+      <div class="cal-form-label">Remind me</div>
+      <div class="cal-reminder-opts">
+        <label class="cal-rem-row"><input type="checkbox" class="cal-rem-check" id="cal-rem-3d"> <span class="cal-rem-label">3 days before</span></label>
+        <label class="cal-rem-row"><input type="checkbox" class="cal-rem-check" id="cal-rem-1d"> <span class="cal-rem-label">1 day before</span></label>
+        <label class="cal-rem-row"><input type="checkbox" class="cal-rem-check" id="cal-rem-30m"> <span class="cal-rem-label">30 minutes before</span></label>
+      </div>
+    </div>
+    <div class="cal-form-row">
+      <div class="cal-form-label">Notes</div>
+      <textarea class="cal-form-in cal-form-textarea" id="cal-entry-notes" placeholder="Additional notes..."></textarea>
+    </div>
+    <div class="cal-modal-btns">
+      <button class="cal-modal-btn" onclick="closeCalModal()">Cancel</button>
+      <button class="cal-modal-btn del" id="cal-del-btn" onclick="deleteCalEntry()" style="display:none">Delete</button>
+      <button class="cal-modal-btn ok" onclick="saveCalEntry()">Save</button>
+    </div>
+  </div>
+</div>
+
+<header class="hdr">
+  <div class="hdr-logo-wrap">
+    <span class="hdr-logo">All Sport Netting</span>
+    <span class="hdr-sub">ASN Workspace</span>
+  </div>
+  <div class="hdr-right">
+    <div class="hdr-date" id="hdr-date"></div>
+    <span class="view-mode-badge" id="view-mode-badge">👁 View Only</span>
+    <div class="save-indicator" id="save-indicator" title="Auto-save status">
+      <span class="save-dot" id="save-dot"></span>
+      <span id="save-label">No file linked</span>
+    </div>
+    <button class="cloud-btn setup-needed" id="cloud-btn" onclick="openSetup()" title="Set up cloud sync — data will work on any browser">☁ Cloud Sync</button>
+    <button class="share-btn" id="share-btn" onclick="openShare()" title="Share this workspace">🔗 Share</button>
+    <button class="setup-btn" id="setup-btn" onclick="setupAutoSave()" title="Pick a save file — after this, saves are silent and automatic">&#128196; Link Save File</button>
+    <button class="hdr-backup-btn" onclick="exportData()" title="Export all data as JSON backup">&#11015; Export</button>
+    <button class="hdr-backup-btn import" onclick="document.getElementById('import-file-in').click()" title="Import JSON backup">&#11014; Import</button>
+    <input type="file" id="import-file-in" accept=".json" style="display:none" onchange="importData(this)">
+  </div>
+</header>
+
+<div id="backup-toast" style="display:none;position:fixed;top:64px;right:16px;z-index:600;background:#1a1a1a;color:#fff;font-family:'Mulish',sans-serif;font-size:13px;padding:10px 18px;border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,.4);border-left:3px solid #3FB950;transition:opacity .3s"></div>
+
+<div class="dl-banner" id="dl-banner">
+  <span>⚠️</span>
+  <span style="flex:1;font-weight:500" id="dl-banner-text"></span>
+  <button class="dl-dismiss" onclick="document.getElementById('dl-banner').classList.remove('show')">×</button>
+</div>
+
+<nav class="nav">
+  <button class="ntab active" onclick="goTab('tracker',this)">📋 Tracker</button>
+  <button class="ntab" onclick="goTab('weekly',this);renderWeeklyReport()">📊 Weekly Report</button>
+  <button class="ntab" onclick="goTab('queue',this)">🗂 ASN Queue <span class="badge" id="q-badge" style="display:none">0</span></button>
+  <button class="ntab" onclick="goTab('eod',this);buildEOD()">📤 EOD Report</button>
+  <button class="ntab" onclick="goTab('tasklist',this);renderTaskList()">📑 Task List</button>
+  <button class="ntab" onclick="goTab('reminders',this)">📝 Reminders</button>
+  <button class="ntab" onclick="goTab('calendar',this);renderCalendar()">📅 Calendar</button>
+</nav>
+
+<div class="body">
+
+  <!-- ══════════════ TRACKER ══════════════ -->
+  <div id="tab-tracker" class="page active">
+    <div class="sec-title">Task Tracker</div>
+    <div class="sec-sub">Mon–Fri · Top 3 = priority · Click timer or time to edit · HH:MM format only</div>
+
+    <!-- Calendar Alerts Banner -->
+    <div class="cal-alert-banner" id="cal-alert-banner">
+      <button class="cal-alert-close" onclick="document.getElementById('cal-alert-banner').classList.remove('show')">×</button>
+      <div id="cal-alert-list"></div>
+    </div>
+
+    <div id="tracker-days"></div>
+  </div>
+
+  <!-- ══════════════ WEEKLY REPORT ══════════════ -->
+  <div id="tab-weekly" class="page">
+    <div class="sec-title">Weekly Report</div>
+    <div class="sec-sub">Tasks auto-populate from Tracker · Dates update automatically · Copy for Outlook</div>
+
+    <!-- CURRENT WEEK — live, refreshes every Monday -->
+    <div class="wr-wrap" id="wr-copyable">
+      <div class="wr-title">Weekly Report — All Sport Netting</div>
+      <div class="wr-period" id="wr-period"></div>
+      <div class="wr-table-container">
+        <table class="wr-table" id="wr-table" border="1" cellspacing="0">
+          <thead id="wr-thead"></thead>
+          <tbody id="wr-tbody"></tbody>
+        </table>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;margin-top:10px;flex-wrap:wrap">
+        <button class="wr-copy-btn" onclick="copyReportTable('wr-copyable','wr-copy-note')">&#128203; Copy Table for Outlook</button>
+        <button class="wr-copy-btn" style="background:#3a7a4a" onclick="wrAddRow()">+ Add Row</button>
+        <button class="wr-copy-btn" style="background:#7a4a2a" onclick="wrResetOverrides()">&#8635; Reset to Tracker Data</button>
+        <span id="wr-copy-note" style="font-size:11px;color:#3FB950;display:none">&#10003; Copied! Paste into Outlook email body.</span>
+      </div>
+    </div>
+
+    <!-- Email sections -->
+    <div style="margin-top:2rem">
+    <!-- End of Week Email Section -->
+    <div class="wr-email-section">
+      <div class="wr-email-hdr">
+        <span class="wr-email-title">&#128231; End-of-Week Report Email</span>
+        <span id="wr-eow-freeze-label" style="font-size:11px;color:var(--amber);font-style:italic;margin-left:8px"></span>
+      </div>
+      <div class="wr-email-body">
+        <div class="wr-field-row">
+          <span class="wr-field-label">Subject</span>
+          <input class="wr-field-in" id="wr-eow-subject" readonly style="background:var(--surface2);color:var(--text2);cursor:default;font-weight:500" placeholder="Auto-generated from week dates">
+          <button class="wr-save-btn" style="margin-left:6px;flex-shrink:0" onclick="copyWrEmail('eow','subject')">Copy</button>
+        </div>
+        <div class="wr-field-row">
+          <span class="wr-field-label">To</span>
+          <input class="wr-field-in" id="wr-eow-to" value="Tom and Janry" placeholder="Recipients" oninput="saveWrEmailDraft()">
+        </div>
+        <!-- Email preview panel — greeting + frozen table rendered for Outlook-ready copy -->
+        <div style="margin-top:8px">
+          <div style="font-family:var(--mono);font-size:10px;color:var(--text3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px">Email Body Preview <span style="color:var(--blue)">(click "Copy Email Body" to copy for Outlook)</span></div>
+          <div id="wr-eow-preview" style="background:#fff;border:1px solid var(--border-md);border-radius:var(--r);padding:16px 18px;font-family:Arial,sans-serif;font-size:13px;color:#222;line-height:1.7;overflow-x:auto"></div>
+        </div>
+        <div class="wr-copy-row" style="margin-top:10px">
+          <button class="wr-save-btn" onclick="copyEowEmailBody()">&#128203; Copy Email Body</button>
+          <span class="wr-saved-note" id="wr-eow-saved">&#10003; Copied!</span>
+        </div>
+      </div>
+    </div>
+    <!-- Total Hours Email Section -->
+    <div class="wr-email-section">
+      <div class="wr-email-hdr">
+        <span class="wr-email-title">&#9200; Total Hours Summary Email</span>
+      </div>
+      <div class="wr-email-body">
+        <div class="wr-field-row">
+          <span class="wr-field-label">Subject</span>
+          <input class="wr-field-in" id="wr-hrs-subject" readonly style="background:var(--surface2);color:var(--text2);cursor:default;font-weight:500" placeholder="Auto-generated from week dates">
+          <button class="wr-save-btn" style="margin-left:6px;flex-shrink:0" onclick="copyWrEmail('hrs','subject')">Copy</button>
+        </div>
+        <div class="wr-field-row">
+          <span class="wr-field-label">To</span>
+          <input class="wr-field-in" id="wr-hrs-to" value="Janry" placeholder="Recipient" oninput="saveWrEmailDraft()">
+        </div>
+        <div class="wr-field-row" style="align-items:flex-start">
+          <span class="wr-field-label" style="margin-top:6px">Body</span>
+          <textarea class="wr-textarea" id="wr-hrs-body" oninput="saveWrEmailDraft()"></textarea>
+        </div>
+        <div class="wr-copy-row">
+          <button class="wr-save-btn" onclick="copyWrEmail('hrs','body')">&#128203; Copy Body</button>
+          <span class="wr-saved-note" id="wr-hrs-saved">&#10003; Copied!</span>
+        </div>
+      </div>
+    </div>
+    </div>
+  </div>
+
+  <!-- ══════════════ QUEUE ══════════════ -->
+  <div id="tab-queue" class="page">
+    <div class="sec-title">ASN Task Queue</div>
+    <div class="sec-sub">All ASN tasks. AI auto-assigns priority. Attach PDFs for AI analysis.</div>
+    <div class="card">
+      <div class="q-filter-bar">
+        <button class="qfbtn active" onclick="filterQ('all',this)">All tasks</button>
+        <button class="qfbtn f-red" onclick="filterQ('red',this)">🔴 Urgent</button>
+        <button class="qfbtn f-amber" onclick="filterQ('amber',this)">🟡 Asked</button>
+        <button class="qfbtn" onclick="filterQ('gray',this)">⚫ Planned</button>
+        <button class="qfbtn" onclick="filterQ('pending',this)">⏳ Pending</button>
+        <button class="qfbtn f-finance" onclick="filterQ('finance',this)">💰 Finance</button>
+        <button class="qfbtn f-new" onclick="filterQ('new',this)">💡 New/Think</button>
+        <button class="qfbtn" onclick="filterQ('deadline',this)">📅 Deadline</button>
+      </div>
+      <div class="q-add-area">
+        <div class="q-add-row1">
+          <input class="qin" id="q-input" placeholder="New ASN task..." onkeydown="if(event.key==='Enter')addQItem()">
+          <button class="qadd-btn" onclick="addQItem()">+ Add</button>
+        </div>
+        <div class="q-add-row2">
+          <select class="qsel" id="q-urg">
+            <option value="red">🔴 Urgent</option>
+            <option value="amber" selected>🟡 They asked</option>
+            <option value="gray">⚫ Planned</option>
+          </select>
+          <select class="qsel" id="q-cat">
+            <option value="finance">💰 Finance</option>
+            <option value="email" selected>📧 Email/Follow-up</option>
+            <option value="new">💡 New/Needs thinking</option>
+            <option value="deadline">📅 Has deadline</option>
+            <option value="other">📌 Other</option>
+          </select>
+          <input class="dl-input" type="datetime-local" id="q-deadline" title="Set deadline">
+        </div>
+      </div>
+      <div id="q-list"></div>
+    </div>
+  </div>
+
+  <!-- ══════════════ EOD REPORT ══════════════ -->
+  <div id="tab-eod" class="page">
+    <div class="sec-title">EOD / Weekly Report</div>
+    <div class="sec-sub" id="eod-auto-date">Today: —</div>
+    <div class="eod-top">
+      <button class="eod-btn" onclick="buildEOD()">↺ Refresh</button>
+      <button class="eod-btn primary" onclick="copyEOD()">Copy report</button>
+    </div>
+    <div class="eod-week-card" id="eod-visual"></div>
+    <div class="sdiv"></div>
+    <div style="font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--text3);margin-bottom:7px">Plain text — copy & paste</div>
+    <div class="copy-box" id="eod-plain"></div>
+    <div style="display:flex;gap:8px;margin-bottom:2rem">
+      <button class="eod-btn primary" onclick="copyEOD()">Copy to clipboard</button>
+      <button class="eod-btn" onclick="goTab('tracker',document.querySelectorAll('.ntab')[0])">← Tracker</button>
+    </div>
+
+    <!-- History Section -->
+    <div class="eod-history">
+      <div class="eod-history-hdr card-head">
+        <span class="cht">📅 Task History — Past 4 Weeks</span>
+      </div>
+      <div id="eod-history-body"></div>
+    </div>
+  </div>
+
+  <!-- ══════════════ TASK LIST ══════════════ -->
+  <div id="tab-tasklist" class="page">
+    <div class="sec-title">ASN Task List</div>
+    <div class="sec-sub">All recurring and one-time tasks. Filter by day. Edit notes inline.</div>
+    <div class="tl-top-bar">
+      <span style="font-family:var(--mono);font-size:10px;color:var(--text3);letter-spacing:.08em;text-transform:uppercase;margin-right:4px">View:</span>
+      <div class="tl-day-filter">
+        <button class="tl-day-btn all active" onclick="filterTL('all',this)">All</button>
+        <button class="tl-day-btn mon" onclick="filterTL('monday',this)">Mon</button>
+        <button class="tl-day-btn tue" onclick="filterTL('tuesday',this)">Tue</button>
+        <button class="tl-day-btn wed" onclick="filterTL('wednesday',this)">Wed</button>
+        <button class="tl-day-btn thu" onclick="filterTL('thursday',this)">Thu</button>
+        <button class="tl-day-btn fri" onclick="filterTL('friday',this)">Fri</button>
+        <button class="tl-day-btn" style="border-color:var(--border-md);color:var(--text3)" onclick="filterTL('everyday',this)">Every Day</button>
+      </div>
+    </div>
+    <div class="tl-add-card">
+      <div class="tl-add-hdr"><span class="tl-add-hdr-txt">+ Add New Task</span></div>
+      <div class="tl-add-form">
+        <div class="tl-form-row">
+          <input class="tl-in" id="tl-name" placeholder="Task name..." style="flex:2;min-width:180px" onkeydown="if(event.key==='Enter')addTLItem()">
+          <select class="tl-sel" id="tl-freq">
+            <option value="daily">Daily</option>
+            <option value="weekly" selected>Weekly</option>
+            <option value="biweekly">Bi-weekly</option>
+            <option value="monthly">Monthly</option>
+            <option value="bimonthly">Bi-monthly</option>
+            <option value="quarterly">Quarterly</option>
+            <option value="yearly">Yearly</option>
+            <option value="onetime">One-time task</option>
+          </select>
+          <select class="tl-sel" id="tl-day">
+            <option value="monday">Monday</option>
+            <option value="tuesday">Tuesday</option>
+            <option value="wednesday">Wednesday</option>
+            <option value="thursday">Thursday</option>
+            <option value="friday">Friday</option>
+            <option value="everyday">Every Day</option>
+          </select>
+          <button class="tl-add-btn" onclick="addTLItem()">+ Add Task</button>
+        </div>
+        <div class="tl-form-row">
+          <input class="tl-in" id="tl-notes-add" placeholder="Notes (optional)..." style="flex:1">
+        </div>
+      </div>
+    </div>
+    <div class="card" id="tl-filtered-card">
+      <div class="card-head"><span class="cht" id="tl-filtered-label">All Tasks</span></div>
+      <div id="tl-filtered-body" class="tl-cards-grid"></div>
+    </div>
+    <div class="tl-week-view">
+      <div class="tl-week-title">Full Week Overview</div>
+      <div class="tl-week-sub">All tasks from Monday to Friday</div>
+      <div class="tl-week-grid" id="tl-week-grid"></div>
+    </div>
+  </div>
+
+  <!-- ══════════════ REMINDERS ══════════════ -->
+  <div id="tab-reminders" class="page">
+    <div class="sec-title">Notes & Email Templates</div>
+    <div class="sec-sub">Click a subject to expand its content. Edit inline.</div>
+    <div class="card">
+      <div class="rem-add-area">
+        <div class="rem-add-row">
+          <input class="rem-in2" id="rem-subject" placeholder="Subject / title..." style="flex:1">
+          <select class="rem-type-sel" id="rem-type">
+            <option value="note">📝 Note</option>
+            <option value="email">📧 Email template</option>
+            <option value="template">📋 Template</option>
+          </select>
+          <button class="rem-add-btn" onclick="addReminder()">+ Add</button>
+        </div>
+        <textarea class="rem-body-in" id="rem-body" placeholder="Body / content..."></textarea>
+      </div>
+      <div id="rem-list"></div>
+    </div>
+  </div>
+
+  <!-- ══════════════ CALENDAR ══════════════ -->
+  <div id="tab-calendar" class="page">
+    <div class="sec-title">Calendar</div>
+    <div class="sec-sub">Click any date to add notes, color codes, tasks, and reminders</div>
+
+    <!-- Current Month Calendar -->
+    <div class="cal-wrap">
+      <div class="cal-month-nav">
+        <button class="cal-nav-btn" onclick="calNavMonth(-1)">‹</button>
+        <div class="cal-month-label" id="cal-month-label"></div>
+        <button class="cal-nav-btn" onclick="calNavMonth(1)">›</button>
+      </div>
+      <div class="cal-grid-card">
+        <div class="cal-dow-hdr">
+          <div class="cal-dow-cell">Sun</div><div class="cal-dow-cell">Mon</div><div class="cal-dow-cell">Tue</div>
+          <div class="cal-dow-cell">Wed</div><div class="cal-dow-cell">Thu</div><div class="cal-dow-cell">Fri</div><div class="cal-dow-cell">Sat</div>
+        </div>
+        <div class="cal-grid" id="cal-grid"></div>
+      </div>
+    </div>
+
+    <!-- Full Year Calendar -->
+    <div class="yr-cal-wrap">
+      <div class="yr-cal-title" id="yr-cal-title"></div>
+      <div class="yr-cal-grid" id="yr-cal-grid"></div>
+    </div>
+  </div>
+
+</div><!-- /body -->
+
+<!-- Bottom Fixed Navigation -->
+<nav class="bottom-nav">
+  <button class="ntab active" onclick="goTab('tracker',this);syncBottomNav(this)">📋 Tracker</button>
+  <button class="ntab" onclick="goTab('weekly',this);renderWeeklyReport();syncBottomNav(this)">📊 Weekly</button>
+  <button class="ntab" onclick="goTab('queue',this);syncBottomNav(this)">🗂 Queue</button>
+  <button class="ntab" onclick="goTab('eod',this);buildEOD();syncBottomNav(this)">📤 EOD</button>
+  <button class="ntab" onclick="goTab('tasklist',this);renderTaskList();syncBottomNav(this)">📑 Tasks</button>
+  <button class="ntab" onclick="goTab('reminders',this);syncBottomNav(this)">📝 Notes</button>
+  <button class="ntab" onclick="goTab('calendar',this);renderCalendar();syncBottomNav(this)">📅 Cal</button>
+</nav>
+
+<script>
+// ══════════════════════════════════════════════════════════════════════
+// ☁️ FIREBASE CLOUD SYNC CONFIG
+// ══════════════════════════════════════════════════════════════════════
+// This is set by the user via the setup wizard and stored in localStorage.
+// You can also paste your config directly here as a fallback:
+// const HARDCODED_FIREBASE_CONFIG = { apiKey:"...", projectId:"...", ... };
+const HARDCODED_FIREBASE_CONFIG = null;
+
+// ── WORKSPACE ID ──────────────────────────────────────────────────────
+// Stored in URL hash: #ws=XXXXX  — each unique ID = separate workspace
+// Edit token stored separately: #ws=XXXXX&tok=YYYYY → edit access
+const WS_CONFIG_KEY = 'asn_firebase_config_v1';
+const WS_EDIT_TOKENS_KEY = 'asn_edit_tokens_v1'; // {wsId: editToken}
+
+let db = null;          // Firestore instance (null = not configured)
+let _workspaceId = '';  // Current workspace ID
+let _isOwner = false;   // True if this browser created this workspace
+let _isEditMode = false;// True if user has edit access
+let _isSyncing = false;
+
+// ── WORKSPACE HELPERS ─────────────────────────────────────────────────
+function genId(len=12){
+  const chars='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let id='';for(let i=0;i<len;i++)id+=chars[Math.floor(Math.random()*chars.length)];
+  return id;
+}
+function genToken(){return genId(16);}
+
+function getHashParams(){
+  const raw = window.location.hash.replace(/^#/,'');
+  const p = new URLSearchParams(raw);
+  return { ws: p.get('ws'), tok: p.get('tok'), view: p.has('view') };
+}
+function setHashParam(key,val){
+  const raw = window.location.hash.replace(/^#/,'');
+  const p = new URLSearchParams(raw);
+  p.set(key,val);
+  window.location.hash = p.toString();
+}
+
+function getEditTokens(){
+  try{return JSON.parse(localStorage.getItem(WS_EDIT_TOKENS_KEY)||'{}');}catch(e){return {};}
+}
+function saveEditToken(wsId, tok){
+  const t=getEditTokens();t[wsId]=tok;
+  localStorage.setItem(WS_EDIT_TOKENS_KEY,JSON.stringify(t));
+}
+function getMyEditToken(wsId){return getEditTokens()[wsId]||null;}
+
+function initWorkspaceId(){
+  const hash = getHashParams();
+  if(hash.ws){
+    _workspaceId = hash.ws;
+    // Check if I'm owner (I created this workspace) or have edit token
+    const ownKey = 'asn_own_' + _workspaceId;
+    _isOwner = localStorage.getItem(ownKey)==='1';
+    const myTok = getMyEditToken(_workspaceId);
+    const urlTok = hash.tok;
+    if(_isOwner){
+      _isEditMode = true;
+    } else if(urlTok && myTok && urlTok===myTok){
+      _isEditMode = true;
+      // Remember this token for future visits
+    } else if(urlTok){
+      // Verify token against Firebase (done in init async)
+      _isEditMode = false; // temporary until verified
+    } else {
+      _isEditMode = false; // view mode
+    }
+  } else {
+    // New workspace
+    _workspaceId = genId(12);
+    _isOwner = true;
+    _isEditMode = true;
+    localStorage.setItem('asn_own_'+_workspaceId,'1');
+    // Generate and store edit token
+    const tok = genToken();
+    saveEditToken(_workspaceId, tok);
+    setHashParam('ws', _workspaceId);
+  }
+}
+
+// ── FIREBASE INIT ─────────────────────────────────────────────────────
+function loadFirebaseConfig(){
+  if(HARDCODED_FIREBASE_CONFIG) return HARDCODED_FIREBASE_CONFIG;
+  try{const s=localStorage.getItem(WS_CONFIG_KEY);if(s)return JSON.parse(s);}catch(e){}
+  return null;
+}
+
+function initFirebase(config){
+  if(!config) return false;
+  try{
+    // Prevent double-init
+    if(firebase.apps.length===0){
+      firebase.initializeApp(config);
+    }
+    db = firebase.firestore();
+    // Update cloud button appearance
+    const btn = document.getElementById('cloud-btn');
+    if(btn){btn.textContent='☁ Synced';btn.className='cloud-btn';btn.onclick=()=>openShare();}
+    return true;
+  }catch(e){
+    console.warn('Firebase init failed:',e);
+    return false;
+  }
+}
+
+// ── FIREBASE SAVE / LOAD ──────────────────────────────────────────────
+function stripPDFs(data){
+  // Remove large base64 PDF data before cloud save (keep local only)
+  const copy = JSON.parse(JSON.stringify(data));
+  if(copy.queue) copy.queue.forEach(q=>{q.pdfData='';});
+  return copy;
+}
+
+async function firebaseSave(payload){
+  if(!db||!_workspaceId||!_isEditMode||_isSyncing) return;
+  _isSyncing=true;
+  try{
+    const cloudData = stripPDFs(payload);
+    cloudData._editToken = getMyEditToken(_workspaceId)||'';
+    await db.collection('workspaces').doc(_workspaceId).set({
+      data: cloudData,
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    const t=new Date().toLocaleTimeString('en-PH',{hour:'2-digit',minute:'2-digit'});
+    updSaveIndicator('saved','☁ Saved '+t);
+  }catch(e){
+    updSaveIndicator('error','☁ Save failed');
+    console.warn('Firebase save error:',e);
+  }finally{_isSyncing=false;}
+}
+
+async function firebaseLoad(){
+  if(!db||!_workspaceId) return null;
+  try{
+    const doc = await db.collection('workspaces').doc(_workspaceId).get();
+    if(doc.exists) return doc.data().data||null;
+    return null;
+  }catch(e){
+    console.warn('Firebase load error:',e);
+    return null;
+  }
+}
+
+async function verifyEditToken(wsId, urlTok){
+  if(!db) return false;
+  try{
+    const doc = await db.collection('workspaces').doc(wsId).get();
+    if(!doc.exists) return false;
+    const storedTok = doc.data()?.data?._editToken;
+    if(storedTok && storedTok===urlTok){
+      saveEditToken(wsId, urlTok); // remember for future
+      return true;
+    }
+    return false;
+  }catch(e){return false;}
+}
+
+// ── APPLY VIEW MODE ───────────────────────────────────────────────────
+function applyViewMode(){
+  if(!_isEditMode){
+    document.body.classList.add('view-mode');
+    const badge=document.getElementById('view-mode-badge');
+    if(badge)badge.classList.add('show');
+    // Hide edit controls that shouldn't show in view mode
+    const setupBtn=document.getElementById('setup-btn');
+    if(setupBtn)setupBtn.style.display='none';
+  }
+}
+
+// ── SHARE MODAL ───────────────────────────────────────────────────────
+function openShare(){
+  const overlay=document.getElementById('share-overlay');
+  if(!overlay)return;
+  overlay.classList.add('open');
+  // Populate workspace ID
+  document.getElementById('ws-id-display').textContent=_workspaceId;
+  // Build links
+  const base = window.location.href.split('#')[0];
+  const viewLink = `${base}#ws=${_workspaceId}&view=1`;
+  const myTok = getMyEditToken(_workspaceId)||'';
+  const editLink = myTok ? `${base}#ws=${_workspaceId}&tok=${myTok}` : `${base}#ws=${_workspaceId}`;
+  document.getElementById('share-view-link').value = viewLink;
+  document.getElementById('share-edit-link').value = editLink;
+  // Show warning if no Firebase
+  document.getElementById('share-no-cloud').style.display = db?'none':'block';
+}
+function closeShare(){
+  document.getElementById('share-overlay').classList.remove('open');
+}
+function copyShareLink(type){
+  const el=document.getElementById('share-'+(type==='view'?'view':'edit')+'-link');
+  if(!el)return;
+  navigator.clipboard.writeText(el.value).then(()=>{
+    showToast('✓ Link copied! '+(type==='view'?'Viewers can see but not edit.':'Editors can modify data.'));
+  }).catch(()=>{el.select();document.execCommand('copy');showToast('✓ Link copied!');});
+}
+
+// ── SETUP OVERLAY ─────────────────────────────────────────────────────
+function openSetup(){
+  document.getElementById('setup-overlay').classList.add('open');
+}
+function skipSetup(){
+  document.getElementById('setup-overlay').classList.remove('open');
+  localStorage.setItem('asn_setup_skipped','1');
+}
+function applyFirebaseConfig(){
+  const raw=document.getElementById('setup-config-input').value.trim();
+  const errEl=document.getElementById('setup-error');
+  errEl.style.display='none';
+  if(!raw){errEl.textContent='Please paste your Firebase config.';errEl.style.display='block';return;}
+  let config;
+  try{
+    // Extract just the { ... } block — handles "const firebaseConfig = {...};" pasted in full
+    const objMatch = raw.match(/\{[\s\S]*\}/);
+    if(!objMatch) throw new Error('No object found');
+    let cleaned = objMatch[0];
+    // Quote unquoted keys only (match after { or , followed by optional whitespace, then identifier then colon)
+    cleaned = cleaned.replace(/([{,]\s*)([a-zA-Z0-9_]+)\s*:/g, '$1"$2":');
+    // Remove trailing commas
+    cleaned = cleaned.replace(/,\s*}/g,'}').replace(/,\s*]/g,']');
+    config = JSON.parse(cleaned);
+  }catch(e){
+    errEl.textContent='Invalid config format. Make sure you copied the full { ... } object.';
+    errEl.style.display='block';
+    return;
+  }
+  if(!config.projectId||!config.apiKey){
+    errEl.textContent='Missing apiKey or projectId. Check the config again.';
+    errEl.style.display='block';
+    return;
+  }
+  localStorage.setItem(WS_CONFIG_KEY,JSON.stringify(config));
+  const ok=initFirebase(config);
+  if(ok){
+    document.getElementById('setup-overlay').classList.remove('open');
+    showToast('✓ Firebase connected! Your data will now sync across all browsers.');
+    // Trigger an immediate save to cloud
+    triggerSave();
+  } else {
+    errEl.textContent='Could not connect. Double-check the config and that Firestore is enabled.';
+    errEl.style.display='block';
+  }
+}
+
+// ── CONSTANTS ──────────────────────────────────────────────────────
+const SK='asn_ws_v3',QK='asn_q_v2',RK='asn_rem_v1',TLK='asn_tl_v1',CAL_K='asn_cal_v1',WR_K='asn_wr_v1',WRT_K='asn_wrt_v1';
+const DNAMES=['Monday','Tuesday','Wednesday','Thursday','Friday'];
+const DKEYS=['monday','tuesday','wednesday','thursday','friday'];
+const MONS=['January','February','March','April','May','June','July','August','September','October','November','December'];
+const MONS_S=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const ROWS=10;
+const DAY_NOTES=[
+  '8–12 PM Deep Thinking · 4–6 AM light tasks only',
+  '8–12 PM Deep Thinking · 4–6 AM light tasks only',
+  '8–12 PM Deep Thinking · 4–6 AM light tasks only',
+  '8–12 PM Deep Thinking · 4–6 AM light tasks only',
+  '8–12 PM Deep Thinking · 4–6 AM light tasks only'
+];
+
+// ── FILE SYSTEM ACCESS API AUTO-SAVE ENGINE ────────────────────────
+// One fixed file, picked once, silently overwritten on every change.
+// Falls back to localStorage so the app always works.
+
+let _fileHandle = null;          // FileSystemFileHandle — survives page reloads via IndexedDB
+let _saveTimer  = null;          // debounce handle
+let _cloudSaveTimer = null;      // Firebase debounce handle
+let _fsaSupported = ('showOpenFilePicker' in window);
+
+// --- IndexedDB handle persistence ---
+const IDB_NAME = 'ASN_FS', IDB_STORE = 'handles', IDB_KEY = 'saveFile';
+function idbOpen(){
+  return new Promise((res,rej)=>{
+    const req = indexedDB.open(IDB_NAME, 1);
+    req.onupgradeneeded = e => e.target.result.createObjectStore(IDB_STORE);
+    req.onsuccess = e => res(e.target.result);
+    req.onerror   = e => rej(e);
+  });
+}
+async function idbSaveHandle(h){
+  try{const db=await idbOpen();const tx=db.transaction(IDB_STORE,'readwrite');tx.objectStore(IDB_STORE).put(h,IDB_KEY);await new Promise((r,j)=>{tx.oncomplete=r;tx.onerror=j;});}catch(e){}
+}
+async function idbLoadHandle(){
+  try{const db=await idbOpen();return await new Promise((res,rej)=>{const tx=db.transaction(IDB_STORE,'readonly');const req=tx.objectStore(IDB_STORE).get(IDB_KEY);req.onsuccess=e=>res(e.target.result||null);req.onerror=rej;});}catch(e){return null;}
+}
+async function idbClearHandle(){
+  try{const db=await idbOpen();const tx=db.transaction(IDB_STORE,'readwrite');tx.objectStore(IDB_STORE).delete(IDB_KEY);}catch(e){}
+}
+
+// --- Save-indicator UI ---
+function updSaveIndicator(status, label){
+  const ind = document.getElementById('save-indicator');
+  const dot = document.getElementById('save-dot');
+  const lbl = document.getElementById('save-label');
+  const btn = document.getElementById('setup-btn');
+  if(!ind) return;
+  ind.className = 'save-indicator ' + (status||'');
+  dot.className = 'save-dot' + (status==='saving'?' pulse':'');
+  lbl.textContent = label || 'No file linked';
+  if(btn){
+    if(status==='saved'||status==='saving'){
+      btn.textContent = '✓ File Linked';
+      btn.className = 'setup-btn linked';
+      btn.title = 'Click to change save file';
+    } else {
+      btn.textContent = '📄 Link Save File';
+      btn.className = 'setup-btn';
+      btn.title = 'Pick a save file — after this, saves are silent and automatic';
+    }
+  }
+}
+
+// --- File permission check ---
+async function verifyPermission(h, readWrite){
+  const opts = readWrite ? {mode:'readwrite'} : {};
+  if((await h.queryPermission(opts))==='granted') return true;
+  if((await h.requestPermission(opts))==='granted') return true;
+  return false;
+}
+
+// --- Setup: user picks the file once ---
+async function setupAutoSave(){
+  if(!_fsaSupported){
+    showToast('Your browser does not support File System Access API. Using local storage fallback.',false);
+    return;
+  }
+  try{
+    const opts = {
+      types:[{description:'ASN Data File',accept:{'application/json':['.json']}}],
+      suggestedName:'ASN_AutoSave.json',
+      excludeAcceptAllOption:false
+    };
+    // Try showSaveFilePicker first (creates or overwrites), fallback to open
+    let h;
+    if('showSaveFilePicker' in window){
+      h = await window.showSaveFilePicker(opts);
+    } else {
+      [h] = await window.showOpenFilePicker({...opts, multiple:false});
+    }
+    _fileHandle = h;
+    await idbSaveHandle(h);
+    showToast('✓ Save file linked! All changes will now auto-save silently.');
+    await silentSave();
+  } catch(e){
+    if(e.name!=='AbortError') showToast('Could not link file: '+e.message, false);
+  }
+}
+
+// --- Silent write to linked file ---
+async function silentSave(){
+  if(!_fileHandle) return;
+  try{
+    const ok = await verifyPermission(_fileHandle, true);
+    if(!ok){updSaveIndicator('error','Permission denied');return;}
+    updSaveIndicator('saving','Saving…');
+    const payload = buildPayload();
+    const writable = await _fileHandle.createWritable();
+    await writable.write(JSON.stringify(payload, null, 2));
+    await writable.close();
+    const now = new Date();
+    const t = now.toLocaleTimeString('en-PH',{hour:'2-digit',minute:'2-digit'});
+    updSaveIndicator('saved','Saved '+t);
+    // Also mirror to localStorage as a secondary copy
+    mirrorToLS(payload);
+  } catch(e){
+    updSaveIndicator('error','Save failed');
+    console.warn('ASN auto-save failed:',e);
+  }
+}
+
+// --- Debounced trigger (called by every save function) ---
+function triggerSave(){
+  if(_saveTimer) clearTimeout(_saveTimer);
+  const payload = buildPayload();
+  // Always write to localStorage immediately
+  mirrorToLS(payload);
+  // File system save (debounced)
+  if(_fileHandle){
+    _saveTimer = setTimeout(silentSave, 600);
+  }
+  // Firebase cloud save (debounced, slightly longer)
+  if(db && _isEditMode){
+    if(_cloudSaveTimer) clearTimeout(_cloudSaveTimer);
+    _cloudSaveTimer = setTimeout(()=>firebaseSave(buildPayload()), 1200);
+  }
+}
+
+// --- Build the full payload object ---
+function buildPayload(){
+  return {
+    version:4,
+    savedAt: new Date().toISOString(),
+    tracker: state,
+    queue: qItems,
+    reminders: remItems,
+    taskList: tlItems,
+    calendar: calEntries,
+    wrEmails: wrEmails,
+    wrTableOverrides: wrTableOverrides
+  };
+}
+
+// --- Mirror to localStorage ---
+function mirrorToLS(payload){
+  try{
+    localStorage.setItem(SK, JSON.stringify(payload.tracker));
+    localStorage.setItem(QK, JSON.stringify(payload.queue||[]));
+    localStorage.setItem(RK, JSON.stringify(payload.reminders||[]));
+    localStorage.setItem(TLK, JSON.stringify(payload.taskList||[]));
+    localStorage.setItem(CAL_K, JSON.stringify(payload.calendar||{}));
+    localStorage.setItem(WR_K, JSON.stringify(payload.wrEmails||{}));
+    localStorage.setItem(WRT_K, JSON.stringify(payload.wrTableOverrides||{}));
+  }catch(e){}
+}
+
+// --- Load from linked file on startup ---
+async function loadFromFile(h){
+  try{
+    const ok = await verifyPermission(h, false);
+    if(!ok) return false;
+    const file = await h.getFile();
+    const text = await file.text();
+    const data = JSON.parse(text);
+    if(!data.version||!data.tracker) return false;
+    // Apply data to in-memory state
+    applyPayload(data);
+    return true;
+  }catch(e){return false;}
+}
+
+function applyPayload(data){
+  if(data.tracker){
+    data.tracker.days.forEach(day=>{
+      if(!day.breakData)day.breakData={elapsed:0,status:'idle',startedAt:null,log:[]};
+      day.tasks.forEach(t=>{if(!t.notes)t.notes='';if(!t.breakData)t.breakData={elapsed:0,status:'idle',startedAt:null,log:[]};});
+    });
+    state = data.tracker;
+  }
+  if(data.queue) qItems = data.queue;
+  if(data.reminders) remItems = data.reminders;
+  if(data.taskList) tlItems = data.taskList.map(t=>({...t,checklist:t.checklist||[]}));
+  if(data.calendar) calEntries = data.calendar;
+  if(data.wrEmails) wrEmails = data.wrEmails;
+  if(data.wrTableOverrides) wrTableOverrides = data.wrTableOverrides;
+}
+
+// --- Individual data loaders (localStorage fallback) ---
+function loadS(){try{const s=localStorage.getItem(SK);if(s){const d=JSON.parse(s);d.days.forEach(day=>{if(!day.breakData)day.breakData={elapsed:0,status:'idle',startedAt:null,log:[]};day.tasks.forEach(t=>{if(!t.notes)t.notes='';if(!t.breakData)t.breakData={elapsed:0,status:'idle',startedAt:null,log:[]};});});return d;}}catch(e){}return defS();}
+function defS(){return{days:DNAMES.map((d,i)=>({i,tasks:Array.from({length:ROWS},(_,r)=>({id:`a${i}r${r}`,name:'',status:'idle',elapsed:0,startedAt:null,priority:r===0?'high':r===1?'med':r===2?'low':'none',manualSec:0,notes:'',breakData:{elapsed:0,status:'idle',startedAt:null,log:[]}})),reminder:''}))}}
+function loadQ(){try{const s=localStorage.getItem(QK);if(s)return JSON.parse(s);}catch(e){}return[];}
+function loadRem(){try{const s=localStorage.getItem(RK);if(s)return JSON.parse(s);}catch(e){}return[];}
+function loadTL(){try{const s=localStorage.getItem(TLK);if(s)return JSON.parse(s);}catch(e){}return[];}
+function loadCal(){try{const s=localStorage.getItem(CAL_K);if(s)return JSON.parse(s);}catch(e){}return{};}
+function loadWrEmails(){try{const s=localStorage.getItem(WR_K);if(s)return JSON.parse(s);}catch(e){}return{eow:{subject:'',to:'Tom and Janry',body:''},hrs:{subject:'',to:'Janry',body:''}};}
+function loadWrTO(){try{const s=localStorage.getItem(WRT_K);if(s)return JSON.parse(s);}catch(e){}return{};}
+
+// --- All save functions now call triggerSave() ---
+function saveS(){triggerSave();}
+function saveQ(){triggerSave();}
+function saveRem(){triggerSave();}
+function saveTL(){triggerSave();}
+function saveCal(){triggerSave();}
+function saveWrEmails(){triggerSave();}
+function saveWrTO(){triggerSave();}
+
+// ── BOOT: load from localStorage first (instant), then async restore file handle ──
+let state=loadS(),qItems=loadQ(),remItems=loadRem(),tlItems=loadTL(),calEntries=loadCal(),wrEmails=loadWrEmails(),wrTableOverrides=loadWrTO();
+let tick=null,currentQFilter='all',currentTLFilter='all';
+let _modalId=null,_modalDi=null;
+let calViewYear=new Date().getFullYear(),calViewMonth=new Date().getMonth();
+let calEditKey=null,calSelectedColor='blue';
+
+const TODAY=new Date();const DOW=TODAY.getDay();const TIDX=DOW===0?4:DOW===6?4:DOW-1;
+function dateForIdx(i){const d=new Date(TODAY);d.setDate(d.getDate()+(i-TIDX));return d;}
+function fmtD(d){return MONS_S[d.getMonth()]+' '+d.getDate();}
+function fmtDFull(d){return MONS[d.getMonth()]+' '+d.getDate()+', '+d.getFullYear();}
+function fmtClock(d){return d.toLocaleTimeString('en-PH',{hour:'2-digit',minute:'2-digit'});}
+function fmtDT(d){return MONS_S[d.getMonth()]+' '+d.getDate()+' '+fmtClock(d);}
+function esc(s){return(''+s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function pad(n){return n<10?'0'+n:''+n;}
+function liveEl(t){return t.elapsed+(t.status==='running'?Math.floor((Date.now()-t.startedAt)/1000):0)+(t.manualSec||0);}
+
+// HH:MM format — strict, no decimals, no "days"
+function fmtHHMM(sec){
+  if(!sec||sec<0)sec=0;
+  const h=Math.floor(sec/3600);
+  const m=Math.floor((sec%3600)/60);
+  return pad(h)+':'+pad(m);
+}
+function fmtHHMMDisplay(sec){
+  const h=Math.floor(sec/3600),m=Math.floor((sec%3600)/60),s=sec%60;
+  if(h>0)return h+'h '+pad(m)+'m';
+  return pad(m)+':'+pad(s);
+}
+
+document.getElementById('hdr-date').textContent=DNAMES[TIDX]+', '+MONS[TODAY.getMonth()]+' '+TODAY.getDate()+', '+TODAY.getFullYear();
+
+function goTab(id,btn){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav .ntab').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tab-'+id).classList.add('active');
+  if(btn&&btn.closest('.nav'))btn.classList.add('active');
+  if(id==='reminders')renderReminders();
+  if(id==='tasklist')renderTaskList();
+  if(id==='calendar')renderCalendar();
+  if(id==='weekly')renderWeeklyReport();
+  if(id==='eod')buildEOD();
+}
+
+function syncBottomNav(btn){
+  document.querySelectorAll('.bottom-nav .ntab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+// ── CHECK CALENDAR ALERTS ──
+function checkCalAlerts(){
+  const now=new Date();
+  const alerts=[];
+  Object.entries(calEntries).forEach(([key,entry])=>{
+    if(!entry.reminders||!entry.remTime)return;
+    const [y,m,d]=key.split('-').map(Number);
+    const entryDate=new Date(y,m,d);
+    const remTime=entry.remTime?entry.remTime.split(':').map(Number):[0,0];
+    if(entry.reminders.r3d){
+      const trigDate=new Date(y,m,d-3,remTime[0],remTime[1]);
+      const diff=(trigDate-now)/(1000*60);
+      if(diff>=-30&&diff<=0)alerts.push({label:`⚠️ In 3 days: ${entry.text}`,date:key});
+    }
+    if(entry.reminders.r1d){
+      const trigDate=new Date(y,m,d-1,remTime[0],remTime[1]);
+      const diff=(trigDate-now)/(1000*60);
+      if(diff>=-30&&diff<=0)alerts.push({label:`⚠️ Tomorrow: ${entry.text}`,date:key});
+    }
+    if(entry.reminders.r30m){
+      const trigDate=new Date(y,m,d,remTime[0],remTime[1]);
+      trigDate.setMinutes(trigDate.getMinutes()-30);
+      const diff=(trigDate-now)/(1000*60);
+      if(diff>=-5&&diff<=0)alerts.push({label:`🔔 30 min: ${entry.text} — Today at ${entry.remTime}`,date:key,urgent:true});
+    }
+    // Day-of alert
+    const todayKey=`${now.getFullYear()}-${now.getMonth()}-${now.getDate()}`;
+    if(key===todayKey&&!entry.alertedToday){
+      alerts.push({label:`📌 Today: ${entry.text}`,date:key,urgent:true});
+    }
+  });
+  const banner=document.getElementById('cal-alert-banner');
+  const list=document.getElementById('cal-alert-list');
+  if(alerts.length){
+    list.innerHTML=alerts.map(a=>`<div class="cal-alert-item">${a.urgent?'🔴 ':'🔔 '}${a.label}</div>`).join('');
+    banner.classList.add('show');
+  }
+}
+setInterval(checkCalAlerts,60000);
+
+// ── TRACKER ──
+const DCLASSES=['mon','tue','wed','thu','fri'];
+function renderTracker(){
+  const ctn=document.getElementById('tracker-days');ctn.innerHTML='';
+  state.days.forEach((day,di)=>{
+    const d=dateForIdx(di),isT=di===TIDX;
+    const wrap=document.createElement('div');wrap.className='day-card'+(isT?' today':'');wrap.id='dc-'+di;
+
+    // Day header
+    const dh=document.createElement('div');dh.className='day-hdr '+DCLASSES[di];
+    dh.innerHTML=`<div class="day-name">${DNAMES[di]}</div>${isT?'<span class="today-chip">Today</span>':''}<div class="day-note">${DAY_NOTES[di]}</div><div class="day-date-chip">${fmtD(d)}, ${d.getFullYear()}</div>`;
+    wrap.appendChild(dh);
+
+    // Break/Rest Timer — RIGHT BELOW the day header
+    const brk=day.breakData||(day.breakData={elapsed:0,status:'idle',startedAt:null,log:[]});
+    const brkEl=liveBrk(brk);
+    const brkStatus=brk.status||'idle';
+    const brkSection=document.createElement('div');brkSection.className='break-section';brkSection.id='brk-section-'+di;
+    brkSection.innerHTML=`
+      <span class="break-label">☕ Break/Rest</span>
+      <span class="break-timer-display ${brkStatus==='running'?'running':''}" id="brk-disp-${di}">${fmtHHMMDisplay(brkEl)}</span>
+      <div style="display:flex;gap:5px" id="brk-btns-${di}">
+        ${brkStatus==='idle'?`<button class="break-btn play" onclick="brkAct(${di},'start')">▶ Start</button>`:''}
+        ${brkStatus==='running'?`<button class="break-btn pause" onclick="brkAct(${di},'pause')">⏸ Pause</button><button class="break-btn end" onclick="brkAct(${di},'end')">■ End</button>`:''}
+        ${brkStatus==='paused'?`<button class="break-btn play" onclick="brkAct(${di},'resume')">▶ Resume</button><button class="break-btn end" onclick="brkAct(${di},'end')">■ End</button>`:''}
+        ${brkStatus==='done'?`<button class="break-btn play" onclick="brkAct(${di},'reset')">↺ Reset</button>`:''}
+      </div>
+      <span class="break-total" id="brk-total-${di}">Total: ${fmtHHMM(brkEl)}</span>
+      <button class="break-log-toggle" onclick="togBrkLog(${di})">Log ▾</button>
+    `;
+    wrap.appendChild(brkSection);
+
+    // Break log panel (collapsible, also right below break bar)
+    const logPanel=document.createElement('div');logPanel.className='break-log-panel';logPanel.id='brk-log-'+di;
+    renderBrkLog(logPanel,brk);
+    wrap.appendChild(logPanel);
+
+    // Task table
+    const tw=document.createElement('div');tw.style.overflowX='auto';
+    const tbl=document.createElement('table');tbl.className='ttbl';
+    tbl.innerHTML=`<thead><tr><th style="width:28px">#</th><th style="width:12px"></th><th>Task</th><th style="width:96px">Timer</th><th style="width:80px">Time</th><th style="width:70px">Status</th><th style="width:86px">Priority</th><th>Note</th><th style="width:30px"></th></tr></thead>`;
+    const tbody=document.createElement('tbody');tbody.id='tb-'+di;
+    day.tasks.forEach((t,ri)=>tbody.appendChild(buildTR(t,di,ri)));
+    tbl.appendChild(tbody);tw.appendChild(tbl);wrap.appendChild(tw);
+    const ab=document.createElement('button');ab.className='add-row-btn';ab.textContent='+ Add row';ab.onclick=()=>addRow(di);wrap.appendChild(ab);
+
+    // Reminder row
+    const rr=document.createElement('div');rr.className='rem-row';
+    rr.innerHTML=`<span style="font-size:13px">📌</span><input class="rem-in" placeholder="Reminder for ${DNAMES[di]}..." value="${esc(day.reminder||'')}" oninput="state.days[${di}].reminder=this.value;saveS();">`;
+    wrap.appendChild(rr);ctn.appendChild(wrap);
+  });
+  checkCalAlerts();
+}
+
+function renderBrkLog(panel,brk){
+  if(!brk.log||!brk.log.length){panel.innerHTML=`<div class="break-log-empty">No break log yet.</div>`;return;}
+  const ul=document.createElement('ul');ul.className='break-log-list';
+  brk.log.forEach(e=>{const li=document.createElement('li');li.textContent=e;ul.appendChild(li);});
+  panel.innerHTML='';panel.appendChild(ul);
+}
+
+function togBrkLog(di){
+  const panel=document.getElementById('brk-log-'+di);
+  if(panel)panel.classList.toggle('open');
+}
+
+function liveBrk(brk){
+  return (brk.elapsed||0)+(brk.status==='running'?Math.floor((Date.now()-brk.startedAt)/1000):0);
+}
+
+let brkTick=null;
+function brkAct(di,action){
+  const day=state.days[di];
+  if(!day.breakData)day.breakData={elapsed:0,status:'idle',startedAt:null,log:[]};
+  const b=day.breakData;
+  const now=new Date();
+  const timeStr=fmtClock(now);
+  if(action==='start'||action==='resume'){
+    b.status='running';b.startedAt=Date.now();
+    b.log.push(action==='start'?`▶ Started at ${timeStr}`:`▶ Resumed at ${timeStr}`);
+    startBrkTick();
+  } else if(action==='pause'){
+    b.elapsed+=Math.floor((Date.now()-b.startedAt)/1000);b.startedAt=null;b.status='paused';
+    b.log.push(`⏸ Paused at ${timeStr}`);
+  } else if(action==='end'){
+    if(b.status==='running'){b.elapsed+=Math.floor((Date.now()-b.startedAt)/1000);b.startedAt=null;}
+    b.status='done';
+    b.log.push(`■ Completed at ${timeStr} — Total: ${fmtHHMM(b.elapsed)}`);
+  } else if(action==='reset'){
+    b.elapsed=0;b.startedAt=null;b.status='idle';b.log=[];
+  }
+  saveS();rerenderBrkSection(di);
+}
+
+function rerenderBrkSection(di){
+  const day=state.days[di];
+  const b=day.breakData||{elapsed:0,status:'idle',startedAt:null,log:[]};
+  const el=liveBrk(b);
+  const disp=document.getElementById('brk-disp-'+di);
+  const btns=document.getElementById('brk-btns-'+di);
+  const tot=document.getElementById('brk-total-'+di);
+  const logPanel=document.getElementById('brk-log-'+di);
+  if(disp){disp.textContent=fmtHHMMDisplay(el);disp.className='break-timer-display'+(b.status==='running'?' running':'');}
+  if(tot)tot.textContent='Total: '+fmtHHMM(el);
+  if(btns){
+    btns.innerHTML=
+      (b.status==='idle'?`<button class="break-btn play" onclick="brkAct(${di},'start')">▶ Start</button>`:'') +
+      (b.status==='running'?`<button class="break-btn pause" onclick="brkAct(${di},'pause')">⏸ Pause</button><button class="break-btn end" onclick="brkAct(${di},'end')">■ End</button>`:'') +
+      (b.status==='paused'?`<button class="break-btn play" onclick="brkAct(${di},'resume')">▶ Resume</button><button class="break-btn end" onclick="brkAct(${di},'end')">■ End</button>`:'') +
+      (b.status==='done'?`<button class="break-btn play" onclick="brkAct(${di},'reset')">↺ Reset</button>`:'');
+  }
+  if(logPanel)renderBrkLog(logPanel,b);
+}
+
+function startBrkTick(){
+  if(brkTick)return;
+  brkTick=setInterval(()=>{
+    let anyRunning=false;
+    state.days.forEach((day,di)=>{
+      if(day.breakData&&day.breakData.status==='running'){
+        anyRunning=true;
+        const el=liveBrk(day.breakData);
+        const disp=document.getElementById('brk-disp-'+di);
+        const tot=document.getElementById('brk-total-'+di);
+        if(disp)disp.textContent=fmtHHMMDisplay(el);
+        if(tot)tot.textContent='Total: '+fmtHHMM(el);
+      }
+    });
+    if(!anyRunning){clearInterval(brkTick);brkTick=null;}
+  },1000);
+}
+
+function buildTR(t,di,ri){
+  const tr=document.createElement('tr');
+  const el=liveEl(t);const pc=t.priority==='high'?'ph':t.priority==='med'?'pm':t.priority==='low'?'pl':'';
+  tr.className=`ttr ${pc} ${t.status==='done'?'tdone':''}`;tr.id='tr-'+t.id;
+  let ctls='';
+  if(t.status==='idle')ctls=`<button class="tbtn tbtn-s" onclick="tAct('${t.id}','start')">▶</button>`;
+  else if(t.status==='running')ctls=`<button class="tbtn tbtn-p" onclick="tAct('${t.id}','pause')">⏸</button><button class="tbtn tbtn-d" onclick="tAct('${t.id}','done')">✓</button>`;
+  else if(t.status==='paused')ctls=`<button class="tbtn tbtn-r" onclick="tAct('${t.id}','resume')">▶</button><button class="tbtn tbtn-d" onclick="tAct('${t.id}','done')">✓</button>`;
+  else ctls=`<button class="tbtn" onclick="tAct('${t.id}','reopen')" style="font-size:9px">↺</button>`;
+  const pQ=qItems.filter(q=>!q.done);
+  const qOpts=pQ.map(q=>`<div class="qdd-item" onclick="setFromQ('${t.id}','${esc(q.name).replace(/'/g,'&#39;')}',${di})"><span class="qi-cat-badge ${catBadgeClass(q.cat)}">${catIcon(q.cat)}</span>${esc(q.name)}</div>`).join('');
+  // Task List items for dropdown
+  const tlOpts=tlItems.map(tl=>`<div class="qdd-item qdd-tl-item" onclick="setFromQ('${t.id}','${esc(tl.name).replace(/'/g,'&#39;')}',${di})"><span style="font-size:10px;opacity:.7">📑</span>${esc(tl.name)}<span style="font-size:9px;color:var(--text3);margin-left:4px">${tl.day.charAt(0).toUpperCase()+tl.day.slice(1)}</span></div>`).join('');
+  const ddContent=(qOpts?`<div class="qdd-section-hdr">Queue</div>${qOpts}`:'')+(tlOpts?`<div class="qdd-section-hdr">Task List</div>${tlOpts}`:'') || '<div style="padding:10px;font-size:12px;color:var(--text3);text-align:center">No tasks available</div>';
+  tr.innerHTML=`
+    <td class="tnum">${ri+1}</td>
+    <td><span style="width:8px;height:8px;border-radius:50%;background:${t.priority==='high'?'var(--red)':t.priority==='med'?'var(--amber)':t.priority==='low'?'var(--blue)':'var(--text3)'};display:inline-block"></span></td>
+    <td><div class="tn-wrap">
+      <input class="tn-input" value="${esc(t.name)}" placeholder="${ri<3?'Priority '+(ri+1):'Task '+(ri+1)+'...'}" oninput="updN('${t.id}',this.value)">
+      <button class="tn-arrow" onclick="togQDD('${t.id}')" title="Pick from queue or task list">▾</button>
+      <div class="queue-dropdown" id="qdd-${t.id}">${ddContent}</div>
+    </div></td>
+    <td><span class="tdisplay ${t.status==='running'?'running':''}" id="td-${t.id}" onclick="openModal('${t.id}',${di})" title="Click to edit">${fmtHHMMDisplay(el)}</span><div class="tbtns">${ctls}</div></td>
+    <td><div class="td-tot-wrap"><span class="td-tot" id="tt-${t.id}" onclick="openModal('${t.id}',${di})" title="Click to edit">${el>0?fmtHHMM(el):'—'}</span><span class="edit-pencil" onclick="openModal('${t.id}',${di})">✏</span></div></td>
+    <td><span class="schip sc-${t.status}">${t.status}</span></td>
+    <td><select class="psel" onchange="updP('${t.id}',this.value)"><option value="high" ${t.priority==='high'?'selected':''}>🔴 High</option><option value="med" ${t.priority==='med'?'selected':''}>🟡 Med</option><option value="low" ${t.priority==='low'?'selected':''}>🔵 Low</option><option value="none" ${t.priority==='none'?'selected':''}>⚪ None</option></select></td>
+    <td><textarea class="note-in" placeholder="Note..." oninput="updTaskNote('${t.id}',this.value)" onblur="saveS()">${esc(t.notes||'')}</textarea></td>
+    <td><button class="delb" onclick="delRow('${t.id}')">×</button></td>
+  `;
+  return tr;
+}
+
+function updTaskNote(id,v){const f=findT(id);if(f){f.t.notes=v;}}
+
+function togQDD(id){document.querySelectorAll('.queue-dropdown').forEach(d=>{if(d.id!=='qdd-'+id)d.classList.remove('open');});document.getElementById('qdd-'+id)?.classList.toggle('open');}
+document.addEventListener('click',e=>{if(!e.target.closest('.tn-wrap'))document.querySelectorAll('.queue-dropdown').forEach(d=>d.classList.remove('open'));});
+function setFromQ(tid,name,di){const f=findT(tid);if(!f)return;f.t.name=name;saveS();document.getElementById('qdd-'+tid)?.classList.remove('open');reRow(tid,di);}
+function findT(id){for(let di=0;di<state.days.length;di++){const ri=state.days[di].tasks.findIndex(t=>t.id===id);if(ri>=0)return{day:state.days[di],t:state.days[di].tasks[ri],di,ri};}return null;}
+
+function tAct(id,action){
+  const f=findT(id);if(!f)return;const{t,di}=f;
+  if(action==='start'||action==='resume'){
+    // Pause any running task first
+    state.days.forEach(d=>d.tasks.forEach(x=>{if(x.id!==id&&x.status==='running'){x.elapsed+=Math.floor((Date.now()-x.startedAt)/1000);x.startedAt=null;x.status='paused';}}));
+    t.status='running';t.startedAt=Date.now();startTick();
+  } else if(action==='pause'){
+    t.elapsed+=Math.floor((Date.now()-t.startedAt)/1000);t.startedAt=null;t.status='paused';
+  } else if(action==='done'){
+    if(t.status==='running'){t.elapsed+=Math.floor((Date.now()-t.startedAt)/1000);t.startedAt=null;}t.status='done';
+  } else if(action==='reopen'){t.status='paused';}
+  saveS();reRow(id,di);
+}
+
+function updN(id,v){const f=findT(id);if(f){f.t.name=v;saveS();}}
+function updP(id,v){const f=findT(id);if(!f)return;f.t.priority=v;saveS();reRow(id,f.di);}
+function reRow(id,di){const f=findT(id);if(!f)return;const tbody=document.getElementById('tb-'+di);const old=document.getElementById('tr-'+id);if(tbody&&old)tbody.replaceChild(buildTR(f.t,di,f.ri),old);}
+function delRow(id){const f=findT(id);if(!f)return;if(state.days[f.di].tasks[f.ri].status==='running'){state.days[f.di].tasks[f.ri].elapsed+=Math.floor((Date.now()-state.days[f.di].tasks[f.ri].startedAt)/1000);}state.days[f.di].tasks.splice(f.ri,1);saveS();rerenderDay(f.di);}
+function addRow(di){const ri=state.days[di].tasks.length;state.days[di].tasks.push({id:`a${di}r${ri}_${Date.now()}`,name:'',status:'idle',elapsed:0,startedAt:null,priority:'none',manualSec:0,notes:'',breakData:{elapsed:0,status:'idle',startedAt:null,log:[]}});saveS();rerenderDay(di);}
+function rerenderDay(di){const tbody=document.getElementById('tb-'+di);if(!tbody)return;tbody.innerHTML='';state.days[di].tasks.forEach((t,ri)=>tbody.appendChild(buildTR(t,di,ri)));}
+
+function startTick(){
+  if(tick)return;
+  tick=setInterval(()=>{
+    let any=false;
+    state.days.forEach((day)=>{
+      day.tasks.forEach(t=>{
+        if(t.status==='running'){
+          any=true;
+          const el=liveEl(t);
+          const td=document.getElementById('td-'+t.id);
+          const tt=document.getElementById('tt-'+t.id);
+          if(td){td.textContent=fmtHHMMDisplay(el);td.className='tdisplay running';}
+          if(tt)tt.textContent=fmtHHMM(el);
+        }
+      });
+    });
+    if(!any){clearInterval(tick);tick=null;}
+  },1000);
+}
+
+function openModal(taskId,di){
+  _modalId=taskId;_modalDi=di;
+  const f=findT(taskId);if(!f)return;
+  const sec=liveEl(f.t);
+  const h=Math.floor(sec/3600),m=Math.floor((sec%3600)/60);
+  document.getElementById('modal-input').value=pad(h)+':'+pad(m);
+  document.getElementById('time-modal').classList.add('open');
+  setTimeout(()=>document.getElementById('modal-input').select(),50);
+}
+function closeModal(){document.getElementById('time-modal').classList.remove('open');_modalId=null;}
+function saveModal(){
+  if(!_modalId)return;
+  const raw=document.getElementById('modal-input').value.trim();
+  let totalSec=0;
+  if(raw.includes(':')){const p=raw.split(':');totalSec=Math.max(0,parseInt(p[0]||0))*3600+Math.max(0,parseInt(p[1]||0))*60;}
+  else{totalSec=Math.max(0,parseInt(raw||0))*60;}
+  const f=findT(_modalId);if(!f)return;
+  if(f.t.status==='running'){f.t.elapsed+=Math.floor((Date.now()-f.t.startedAt)/1000);f.t.startedAt=null;f.t.status='paused';}
+  f.t.elapsed=totalSec;f.t.manualSec=0;
+  saveS();reRow(_modalId,_modalDi);closeModal();
+}
+document.getElementById('modal-input').addEventListener('keydown',e=>{if(e.key==='Enter')saveModal();if(e.key==='Escape')closeModal();});
+
+// ── WEEKLY REPORT ──
+function buildWrTable(theadEl, tbodyEl, days_data, dates_data) {
+  // days_data: array of 5 arrays of task names
+  // dates_data: array of 5 date strings
+  theadEl.innerHTML = ''; tbodyEl.innerHTML = '';
+  const dayBgs = ['#C94060','#C87830','#2E9A86','#3A78B0','#8054A0'];
+  const DNAMES_FULL = ['Monday','Tuesday','Wednesday','Thursday','Friday'];
+
+  // Header row: day names
+  const hdr = document.createElement('tr');
+  let hdrHtml = '';
+  DNAMES_FULL.forEach((dn, i) => {
+    hdrHtml += `<th style="background:${dayBgs[i]};color:#fff;border:1px solid rgba(0,0,0,.15);padding:8px 10px;font-family:Arial;font-size:13px;font-weight:700;text-align:center;min-width:130px">${dn}</th>`;
+  });
+  hdr.innerHTML = hdrHtml;
+  theadEl.appendChild(hdr);
+
+  // Date row
+  const dateRow = document.createElement('tr');
+  let dateHtml = '';
+  dates_data.forEach((dt, i) => {
+    dateHtml += `<td style="background:${dayBgs[i]}22;border:1px solid #c8d6e5;padding:5px 10px;font-family:Arial;font-size:11px;color:#555;text-align:center;font-style:italic">${dt}</td>`;
+  });
+  dateRow.innerHTML = dateHtml;
+  tbodyEl.appendChild(dateRow);
+
+  // Find max rows needed
+  const maxRows = Math.max(...days_data.map(d => d.length), 1);
+
+  for (let r = 0; r < maxRows; r++) {
+    const tr = document.createElement('tr');
+    const bg = r % 2 === 0 ? '#fff' : '#f7f0f5';
+    let rowHtml = '';
+    days_data.forEach((tasks, i) => {
+      const task = tasks[r] || '';
+      rowHtml += `<td contenteditable="true" style="background:${task ? bg : '#faf8f9'};border:1px solid #e0ccd8;padding:7px 12px;font-family:Arial;font-size:13px;color:${task ? '#2a0015' : '#aaa'};min-height:28px;outline:none;cursor:text" data-di="${i}" data-row="${r}" onblur="wrTableCellEdit(this)" onfocus="this.style.background='#fffbe6';this.style.color='#2a0015'" oninput="this.style.color='#2a0015'">${task || ''}</td>`;
+    });
+    tr.innerHTML = rowHtml;
+    tbodyEl.appendChild(tr);
+  }
+}
+
+// ── EOW EMAIL FROZEN SNAPSHOT LOGIC ──────────────────────────────────
+// Key: snapshot stored per-week, frozen Mon+Tue of next week, refreshes Wed
+const EOW_SNAP_KEY = 'asn_eow_snap_v1';
+
+function getWeekMonday(d) {
+  // Returns a Date set to the Monday of the week containing d
+  const day = new Date(d);
+  const dow = day.getDay(); // 0=Sun,1=Mon,...,6=Sat
+  const diff = dow === 0 ? -6 : 1 - dow;
+  day.setDate(day.getDate() + diff);
+  day.setHours(0,0,0,0);
+  return day;
+}
+
+function getEowSnapshotWeekKey(d) {
+  // Returns the week-key string (YYYY-MM-DD of Monday) for which we should be SHOWING a snapshot.
+  // Freeze window: Sat(6), Sun(0), Mon(1), Tue(2) → show PREVIOUS week's snapshot (frozen).
+  // Wed(3), Thu(4), Fri(5) → show CURRENT week's snapshot (live).
+  const dow = d.getDay(); // 0=Sun,1=Mon,2=Tue,3=Wed,4=Thu,5=Fri,6=Sat
+  let refDate = new Date(d);
+  if (dow === 6 || dow === 0 || dow === 1 || dow === 2) {
+    // Sat/Sun/Mon/Tue — point to previous week
+    refDate.setDate(refDate.getDate() - 7);
+  }
+  const mon = getWeekMonday(refDate);
+  return `${mon.getFullYear()}-${String(mon.getMonth()+1).padStart(2,'0')}-${String(mon.getDate()).padStart(2,'0')}`;
+}
+
+function loadEowSnap() {
+  try { const s = localStorage.getItem(EOW_SNAP_KEY); if(s) return JSON.parse(s); } catch(e) {}
+  return null;
+}
+function saveEowSnap(snap) {
+  try { localStorage.setItem(EOW_SNAP_KEY, JSON.stringify(snap)); } catch(e) {}
+}
+
+function buildTableHtml(tasks, dates) {
+  // Returns a self-contained HTML string of the table (Outlook-compatible inline styles)
+  const dayBgs = ['#C94060','#C87830','#2E9A86','#3A78B0','#8054A0'];
+  const DNAMES_FULL = ['Monday','Tuesday','Wednesday','Thursday','Friday'];
+  let html = '<table border="1" cellspacing="0" cellpadding="0" style="border-collapse:collapse;width:100%;font-family:Arial,sans-serif;font-size:13px">';
+  // Header row
+  html += '<thead><tr>';
+  DNAMES_FULL.forEach((dn, i) => {
+    html += `<th style="background:${dayBgs[i]};color:#fff;border:1px solid rgba(0,0,0,.15);padding:8px 10px;font-family:Arial,sans-serif;font-size:13px;font-weight:700;text-align:center;min-width:130px">${dn}</th>`;
+  });
+  html += '</tr></thead><tbody>';
+  // Date row
+  html += '<tr>';
+  dates.forEach((dt, i) => {
+    html += `<td style="background:${dayBgs[i]}22;border:1px solid #c8d6e5;padding:5px 10px;font-family:Arial,sans-serif;font-size:11px;color:#555;text-align:center;font-style:italic">${dt}</td>`;
+  });
+  html += '</tr>';
+  // Task rows
+  const maxRows = Math.max(...tasks.map(d => d.length), 1);
+  for (let r = 0; r < maxRows; r++) {
+    const bg = r % 2 === 0 ? '#fff' : '#f7f0f5';
+    html += '<tr>';
+    tasks.forEach((dayTasks, i) => {
+      const task = dayTasks[r] || '';
+      html += `<td style="background:${task ? bg : '#faf8f9'};border:1px solid #e0ccd8;padding:7px 12px;font-family:Arial,sans-serif;font-size:13px;color:${task ? '#2a0015' : '#ccc'};min-height:28px">${task || ''}</td>`;
+    });
+    html += '</tr>';
+  }
+  html += '</tbody></table>';
+  return html;
+}
+
+function renderEowEmailPreview(snap) {
+  const preview = document.getElementById('wr-eow-preview');
+  const freezeLabel = document.getElementById('wr-eow-freeze-label');
+  if (!preview) return;
+
+  const greeting = `Hi Tom and Janry,<br><br>Below is the summary of the tasks completed last week.<br><br>`;
+  const tableHtml = snap ? buildTableHtml(snap.tasks, snap.dates) : '<em style="color:#aaa">No snapshot yet — tasks will appear here after the week has data.</em>';
+
+  preview.innerHTML = greeting + tableHtml;
+
+  // Freeze label
+  const now = new Date();
+  const dow = now.getDay();
+  if (freezeLabel) {
+    if (dow === 6 || dow === 0 || dow === 1 || dow === 2) {
+      freezeLabel.textContent = '🔒 Frozen — showing last week · refreshes Wednesday';
+    } else {
+      freezeLabel.textContent = '📸 Current week snapshot · freezes Saturday through Tuesday';
+    }
+  }
+}
+
+function copyEowEmailBody() {
+  const preview = document.getElementById('wr-eow-preview');
+  if (!preview) return;
+  // Select the rendered HTML content and copy (preserves table formatting for Outlook)
+  const range = document.createRange();
+  range.selectNode(preview);
+  const sel = window.getSelection();
+  sel.removeAllRanges();
+  sel.addRange(range);
+  try { document.execCommand('copy'); } catch(e) {}
+  sel.removeAllRanges();
+  const note = document.getElementById('wr-eow-saved');
+  if (note) { note.style.display = 'inline'; note.textContent = '✓ Copied! Paste into Outlook.'; setTimeout(() => { note.style.display = 'none'; }, 3000); }
+}
+
+function renderWeeklyReport() {
+  const mon = dateForIdx(0), fri = dateForIdx(4);
+  const period = `${MONS_S[mon.getMonth()]} ${mon.getDate()} – ${MONS_S[fri.getMonth()]} ${fri.getDate()}, ${fri.getFullYear()}`;
+  document.getElementById('wr-period').textContent = period;
+
+  // Build current week data
+  const currentDayTasks = state.days.map(day => day.tasks.filter(t => t.name.trim()).map(t => t.name.trim()));
+  const currentDates = state.days.map((_, di) => {
+    const d = dateForIdx(di);
+    return `${MONS_S[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`;
+  });
+
+  // Top table always shows CURRENT week (refreshes every Saturday automatically via dateForIdx)
+  buildWrTable(
+    document.getElementById('wr-thead'),
+    document.getElementById('wr-tbody'),
+    currentDayTasks,
+    currentDates
+  );
+  // Apply any manual overrides to cells
+  applyWrOverrides();
+
+  // ── EOW EMAIL SNAPSHOT ──
+  // Freeze window: Saturday of week N through Tuesday of week N+1.
+  // That means: on Sat/Sun/Mon/Tue we show LAST week's snapshot (frozen).
+  // On Wed/Thu/Fri we capture and show CURRENT week (live, updating each visit).
+  const now = new Date();
+  const dow = now.getDay(); // 0=Sun,1=Mon,2=Tue,3=Wed,4=Thu,5=Fri,6=Sat
+
+  // isFreezePeriod: Sat(6), Sun(0), Mon(1), Tue(2)
+  const isFreezePeriod = (dow === 6 || dow === 0 || dow === 1 || dow === 2);
+
+  let snap = loadEowSnap();
+  const showWeekKey = getEowSnapshotWeekKey(now);
+
+  if (!isFreezePeriod) {
+    // Wed / Thu / Fri — capture the CURRENT week live (always update so tasks stay fresh)
+    const hasTasks = currentDayTasks.some(d => d.length > 0);
+    if (hasTasks) {
+      snap = { weekKey: showWeekKey, period, tasks: currentDayTasks, dates: currentDates, savedAt: Date.now() };
+      saveEowSnap(snap);
+    }
+  }
+  // On Sat/Sun/Mon/Tue: leave snap untouched (frozen showing last week)
+
+  renderEowEmailPreview(snap);
+  loadWrEmailFields();
+}
+
+function wrTableCellEdit(cell){
+  const di=parseInt(cell.dataset.di);const row=parseInt(cell.dataset.row);const val=cell.textContent.trim();
+  const key=`${di}_${row}`;
+  if(val){wrTableOverrides[key]=val;}else{delete wrTableOverrides[key];}
+  saveWrTO();
+  // Restore row background after edit
+  const r=parseInt(cell.dataset.row);const bg=r%2===0?'#fff':'#f7f0f5';
+  cell.style.background=val?bg:'#faf8f9';
+}
+function wrAddRow(){
+  // Find max rows currently
+  const tbody=document.getElementById('wr-tbody');if(!tbody)return;
+  const existingRows=tbody.querySelectorAll('tr').length; // includes date row
+  const newRow=existingRows-1; // 0-indexed data row
+  const dayBgs=['#C94060','#C87830','#2E9A86','#3A78B0','#8054A0'];
+  const tr=document.createElement('tr');
+  const bg=newRow%2===0?'#fff':'#f7f0f5';
+  let rowHtml='';
+  for(let i=0;i<5;i++){
+    rowHtml+=`<td contenteditable="true" style="background:#faf8f9;border:1px solid #e0ccd8;padding:7px 12px;font-family:Arial;font-size:13px;color:#aaa;min-height:28px;outline:none;cursor:text" data-di="${i}" data-row="${newRow}" onblur="wrTableCellEdit(this)" onfocus="this.style.background='#fffbe6';this.style.color='#2a0015'" oninput="this.style.color='#2a0015'"></td>`;
+  }
+  tr.innerHTML=rowHtml;
+  tbody.appendChild(tr);
+}
+function wrResetOverrides(){
+  if(!confirm('Reset all manual edits to the Weekly Report table? This will re-populate from Tracker data.'))return;
+  wrTableOverrides={};saveWrTO();renderWeeklyReport();
+}
+function applyWrOverrides(){
+  const tbody=document.getElementById('wr-tbody');if(!tbody)return;
+  Object.entries(wrTableOverrides).forEach(([key,val])=>{
+    const [di,row]=key.split('_').map(Number);
+    const rows=tbody.querySelectorAll('tr');
+    const trEl=rows[row+1]; // +1 to skip date row
+    if(!trEl)return;
+    const cells=trEl.querySelectorAll('td');
+    const cell=cells[di];
+    if(!cell)return;
+    cell.textContent=val;
+    const bg=row%2===0?'#fff':'#f7f0f5';
+    cell.style.background=bg;cell.style.color='#2a0015';
+  });
+}
+function copyReportTable(wrapId, noteId) {
+  const wrap = document.getElementById(wrapId);
+  if (!wrap) return;
+  const range = document.createRange();
+  range.selectNode(wrap);
+  const sel = window.getSelection();
+  sel.removeAllRanges(); sel.addRange(range);
+  try { document.execCommand('copy'); } catch(e) {}
+  sel.removeAllRanges();
+  const note = document.getElementById(noteId);
+  if (note) { note.style.display = 'inline'; setTimeout(() => note.style.display = 'none', 3000); }
+}
+
+
+function getWeekSubjectRange() {
+  // Returns "Month D – Month D, YYYY" using the EOW snap dates if available,
+  // otherwise falls back to current week's Mon–Fri.
+  // Format example: "March 30 – April 3, 2026"
+  const snap = loadEowSnap();
+  const now = new Date();
+  const dow = now.getDay();
+  const showWeekKey = getEowSnapshotWeekKey(now);
+
+  let mon, fri;
+  if (snap && snap.dates && snap.dates.length === 5) {
+    // Parse from snapshot dates like "Mar 30, 2026"
+    // We'll re-derive from the week key for accuracy
+    const [y, m, d] = snap.weekKey.split('-').map(Number);
+    mon = new Date(y, m - 1, d);
+    fri = new Date(y, m - 1, d + 4);
+  } else {
+    mon = dateForIdx(0);
+    fri = dateForIdx(4);
+  }
+
+  const MONS_FULL = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const monStr = `${MONS_FULL[mon.getMonth()]} ${mon.getDate()}`;
+  const friStr = `${MONS_FULL[fri.getMonth()]} ${fri.getDate()}`;
+  const year = fri.getFullYear();
+
+  if (mon.getMonth() === fri.getMonth()) {
+    return `${monStr} – ${fri.getDate()}, ${year}`;
+  }
+  return `${monStr} – ${friStr}, ${year}`;
+}
+
+function loadWrEmailFields(){
+  const dateRange = getWeekSubjectRange();
+
+  // EOW subject — always auto-generated
+  const eowSubj = document.getElementById('wr-eow-subject');
+  if (eowSubj) eowSubj.value = `End of Week Report: ${dateRange}`;
+
+  const eowTo = document.getElementById('wr-eow-to');
+  if (eowTo && !eowTo.value) eowTo.value = wrEmails.eow?.to || 'Tom and Janry';
+
+  // Total Hrs subject — always auto-generated
+  const hrsSubj = document.getElementById('wr-hrs-subject');
+  if (hrsSubj) hrsSubj.value = `Total hrs: ${dateRange}`;
+
+  const hrsTo = document.getElementById('wr-hrs-to');
+  if (hrsTo && !hrsTo.value) hrsTo.value = wrEmails.hrs?.to || 'Janry';
+
+  // Total Hrs body — default if not saved yet
+  const hrsBody = document.getElementById('wr-hrs-body');
+  if (hrsBody) {
+    if (wrEmails.hrs?.body) {
+      hrsBody.value = wrEmails.hrs.body;
+    } else {
+      hrsBody.value = `Hi Janry,\nTotal hrs: 40`;
+    }
+  }
+}
+
+function saveWrEmailDraft(){
+  // Subjects are auto-generated — don't save them (they rebuild from dates on load)
+  wrEmails.eow={
+    to:document.getElementById('wr-eow-to')?.value||'Tom and Janry'
+  };
+  wrEmails.hrs={
+    to:document.getElementById('wr-hrs-to')?.value||'Janry',
+    body:document.getElementById('wr-hrs-body')?.value||''
+  };
+  saveWrEmails();
+}
+
+function saveWrEmail(type){
+  saveWrEmailDraft();
+  const note=document.getElementById('wr-'+type+'-saved');
+  if(note){note.style.display='inline';setTimeout(()=>note.style.display='none',2000);}
+}
+
+function copyWrEmail(type,field){
+  const val=document.getElementById('wr-'+type+'-'+field)?.value||'';
+  navigator.clipboard.writeText(val).then(()=>{
+    const note=document.getElementById('wr-'+type+'-saved');
+    if(note){const orig=note.textContent;note.style.display='inline';note.textContent='✓ Copied!';setTimeout(()=>{note.style.display='none';note.textContent=orig;},2000);}
+  }).catch(()=>{});
+}
+
+// ── QUEUE ──
+function catBadgeClass(c){return c==='finance'?'cat-fin':c==='email'?'cat-email':c==='new'?'cat-new':c==='deadline'?'cat-dl':'cat-other';}
+function catIcon(c){return c==='finance'?'💰':c==='email'?'📧':c==='new'?'💡':c==='deadline'?'📅':'📌';}
+function catLabel(c){return c==='finance'?'Finance':c==='email'?'Email':c==='new'?'New/Think':c==='deadline'?'Deadline':'Other';}
+function autoPriority(q){
+  const n=(q.name||'').toLowerCase(),nt=(q.notes||'').toLowerCase(),c=n+' '+nt;
+  if(q.deadline){const diff=(new Date(q.deadline)-Date.now())/(1000*60*60*24);if(diff<1)return{level:'critical',label:'🔴 Critical — due today'};}
+  if(q.urg==='red')return{level:'critical',label:'🔴 Critical'};
+  if(/complaint|urgent|asap|immediately|today|overdue|issue/.test(c))return{level:'critical',label:'🔴 Critical'};
+  if(q.deadline){const diff=(new Date(q.deadline)-Date.now())/(1000*60*60*24);if(diff<3)return{level:'high',label:'🟠 High — deadline soon'};}
+  if(q.cat==='deadline')return{level:'high',label:'🟠 High — has deadline'};
+  if(q.urg==='amber')return{level:'medium',label:'🟡 Medium — they asked'};
+  if(q.cat==='email')return{level:'medium',label:'🟡 Medium — follow up'};
+  return{level:'low',label:'⚪ Low — planned'};
+}
+function addQItem(){
+  const inp=document.getElementById('q-input');const name=inp.value.trim();if(!name){inp.focus();return;}
+  const urg=document.getElementById('q-urg').value;const cat=document.getElementById('q-cat').value;const dl=document.getElementById('q-deadline').value;
+  qItems.unshift({id:Date.now(),name,urg,cat,deadline:dl||'',notes:'',done:false,ts:Date.now(),pdfName:'',pdfData:''});
+  inp.value='';document.getElementById('q-deadline').value='';saveQ();renderQ();checkDeadlines();
+}
+function filterQ(f,btn){currentQFilter=f;document.querySelectorAll('.qfbtn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');renderQ();}
+function shouldShow(item){if(currentQFilter==='all')return true;if(currentQFilter==='pending')return!item.done;if(currentQFilter==='red')return item.urg==='red';if(currentQFilter==='amber')return item.urg==='amber';if(currentQFilter==='gray')return item.urg==='gray';if(currentQFilter==='finance')return item.cat==='finance';if(currentQFilter==='new')return item.cat==='new';if(currentQFilter==='deadline')return item.cat==='deadline'||!!item.deadline;return true;}
+function renderQ(){
+  const list=document.getElementById('q-list');if(!qItems.length){list.innerHTML='<div class="q-empty">No tasks yet.</div>';return;}
+  list.innerHTML='';
+  qItems.forEach(item=>{
+    const ap=autoPriority(item);const visible=shouldShow(item);
+    const div=document.createElement('div');
+    div.className=`qi qi-${item.urg} ${item.done?'qi-done':''} ${visible?'':'qi-hidden'}`;div.id='qi-'+item.id;
+    const ts=fmtDT(new Date(item.ts));const urgLabel=item.urg==='red'?'Urgent':item.urg==='amber'?'Asked':'Planned';
+    const dlDisp=item.deadline?`<span class="qi-dl-disp">📅 ${new Date(item.deadline).toLocaleString('en-PH',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'})}</span>`:'';
+    div.innerHTML=`
+      <div class="qi-left"><span class="qi-urg urg-${item.urg}">${urgLabel}</span><div class="qi-ts">${ts}</div></div>
+      <div class="qi-body">
+        <div class="qi-title-row">
+          <input class="qi-name-in" value="${esc(item.name)}" oninput="updQN(${item.id},this.value)">
+          <span class="qi-auto-pri ap-${ap.level}">${ap.label}</span>${dlDisp}
+        </div>
+        <div class="qi-meta">
+          <span class="qi-cat-badge ${catBadgeClass(item.cat)}">${catIcon(item.cat)} ${catLabel(item.cat)}</span>
+          <button class="qi-notes-tog" onclick="togQNotes(${item.id},this)">Notes ▾</button>
+          <button class="qi-pdf-btn" onclick="document.getElementById('pdf-in-${item.id}').click()">📎 PDF</button>
+          <select style="font-size:10px;padding:2px 5px;border:1px solid var(--border);border-radius:4px;background:var(--surface3);color:var(--text2);" onchange="chgUrg(${item.id},this.value)"><option value="red" ${item.urg==='red'?'selected':''}>🔴 Urgent</option><option value="amber" ${item.urg==='amber'?'selected':''}>🟡 Asked</option><option value="gray" ${item.urg==='gray'?'selected':''}>⚫ Planned</option></select>
+          <select style="font-size:10px;padding:2px 5px;border:1px solid var(--border);border-radius:4px;background:var(--surface3);color:var(--text2);" onchange="chgCat(${item.id},this.value)"><option value="finance" ${item.cat==='finance'?'selected':''}>💰 Finance</option><option value="email" ${item.cat==='email'?'selected':''}>📧 Email</option><option value="new" ${item.cat==='new'?'selected':''}>💡 New/Think</option><option value="deadline" ${item.cat==='deadline'?'selected':''}>📅 Deadline</option><option value="other" ${item.cat==='other'?'selected':''}>📌 Other</option></select>
+        </div>
+        <div class="qi-notes-panel" id="qnp-${item.id}">
+          <input type="file" class="pdf-file-in" id="pdf-in-${item.id}" accept=".pdf" onchange="handlePDF(${item.id},this)">
+          <div class="pdf-drop-zone ${item.pdfName?'has-file':''}" id="pdz-${item.id}" onclick="document.getElementById('pdf-in-${item.id}').click()" ondragover="event.preventDefault()" ondrop="handlePDFDrop(${item.id},event)">${item.pdfName?`📄 ${esc(item.pdfName)} — click to replace`:'📎 Click or drag a PDF to attach'}</div>
+          <textarea class="qi-notes-area" placeholder="Notes..." oninput="updQNotes(${item.id},this.value)">${esc(item.notes)}</textarea>
+          <button class="ai-explain-btn" id="ai-btn-${item.id}" onclick="aiExplain(${item.id})" ${!item.notes&&!item.pdfData?'disabled':''}>✦ AI: explain this task</button>
+          <div class="ai-output" id="ai-out-${item.id}"></div>
+        </div>
+      </div>
+      <div class="qi-right">
+        <button class="qi-del-btn" onclick="delQ(${item.id})">×</button>
+        <button class="qi-done-btn" onclick="togDoneQ(${item.id})">${item.done?'↺ Reopen':'✓ Done'}</button>
+      </div>
+    `;
+    list.appendChild(div);
+  });
+}
+function updQN(id,v){const i=qItems.find(x=>x.id===id);if(i){i.name=v;saveQ();}}
+function updQNotes(id,v){const i=qItems.find(x=>x.id===id);if(i){i.notes=v;saveQ();const ab=document.getElementById('ai-btn-'+id);if(ab)ab.disabled=!v&&!i.pdfData;}}
+function togQNotes(id,btn){const p=document.getElementById('qnp-'+id);if(!p)return;p.classList.toggle('open');btn.textContent=p.classList.contains('open')?'Notes ▴':'Notes ▾';}
+function chgUrg(id,v){const i=qItems.find(x=>x.id===id);if(i){i.urg=v;saveQ();renderQ();checkDeadlines();}}
+function chgCat(id,v){const i=qItems.find(x=>x.id===id);if(i){i.cat=v;saveQ();renderQ();}}
+function togDoneQ(id){const i=qItems.find(x=>x.id===id);if(i){i.done=!i.done;saveQ();renderQ();checkDeadlines();}}
+function delQ(id){if(!confirm('Remove this task?'))return;qItems=qItems.filter(x=>x.id!==id);saveQ();renderQ();checkDeadlines();}
+function handlePDF(id,input){const file=input.files[0];if(!file)return;const reader=new FileReader();reader.onload=e=>{const item=qItems.find(x=>x.id===id);if(!item)return;item.pdfName=file.name;item.pdfData=e.target.result;saveQ();const dz=document.getElementById('pdz-'+id);if(dz){dz.textContent=`📄 ${file.name} — click to replace`;dz.classList.add('has-file');}const ab=document.getElementById('ai-btn-'+id);if(ab)ab.disabled=false;};reader.readAsDataURL(file);}
+function handlePDFDrop(id,e){e.preventDefault();const file=e.dataTransfer.files[0];if(!file||file.type!=='application/pdf')return;handlePDF(id,{files:[file]});}
+async function aiExplain(id){
+  const item=qItems.find(x=>x.id===id);if(!item)return;
+  const outEl=document.getElementById('ai-out-'+id);const btn=document.getElementById('ai-btn-'+id);
+  if(!outEl||!btn)return;
+  outEl.classList.add('open');outEl.innerHTML='<span class="ai-loading">✦ Thinking...</span>';btn.disabled=true;
+  try{
+    let messages=[];
+    if(item.pdfData){const base64=item.pdfData.split(',')[1];messages=[{role:'user',content:[{type:'document',source:{type:'base64',media_type:'application/pdf',data:base64}},{type:'text',text:`Task: "${item.name}"\nNotes: ${item.notes||'none'}\n\nPlease: 1) Summarize the document. 2) Explain what I need to do step by step. 3) Flag anything urgent.`}]}];}
+    else{messages=[{role:'user',content:`Task: "${item.name}"\nNotes: ${item.notes||'none'}\n\nExplain simply:\n1. What this task involves\n2. Step-by-step how to do it\n3. What to watch out for\n4. Rough time estimate`}];}
+    const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,messages})});
+    const data=await res.json();
+    const text=data.content?.map(c=>c.text||'').join('')||'No response.';
+    outEl.innerHTML=text.replace(/\n/g,'<br>').replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>');
+  }catch(err){outEl.innerHTML='<span style="color:var(--red)">Could not connect. Check internet.</span>';}
+  btn.disabled=false;
+}
+
+// ── EOD REPORT ──
+function buildEOD(){
+  // Update auto date
+  const now=new Date();
+  document.getElementById('eod-auto-date').textContent=`Today: ${DNAMES[TIDX]}, ${MONS[now.getMonth()]} ${now.getDate()}, ${now.getFullYear()}`;
+
+  const mon=dateForIdx(0),fri=dateForIdx(4);
+  const wkLabel=MONS[mon.getMonth()]+' '+mon.getDate()+' – '+(mon.getMonth()!==fri.getMonth()?MONS[fri.getMonth()]+' ':'')+fri.getDate()+', '+fri.getFullYear();
+  let vHtml=`<div class="eod-week-hdr"><div class="eod-week-title">Weekly Report — All Sport Netting</div><div class="eod-week-meta">${wkLabel}</div></div>`;
+  state.days.forEach((day,di)=>{
+    const d=dateForIdx(di);const tasks=day.tasks.filter(t=>t.name.trim()||liveEl(t)>0);
+    vHtml+=`<div class="eod-day-sec"><div class="eod-day-label"><div class="eod-day-name">${DNAMES[di]}</div><div class="eod-day-date">${fmtD(d)}, ${d.getFullYear()}</div></div>`;
+    if(!tasks.length){vHtml+=`<div class="eod-notasks">No tasks recorded.</div>`;}
+    else tasks.forEach((t,i)=>{const sC=t.status==='done'?'sc-done':t.status==='running'?'sc-running':t.status==='paused'?'sc-paused':'sc-idle';const el=liveEl(t);vHtml+=`<div class="eod-tline"><div class="eod-tnum">${i+1}.</div><div class="eod-tname">${esc(t.name||'Unnamed')}</div>${el>0?`<span style="font-family:var(--mono);font-size:10px;color:var(--text3);margin-right:4px">${fmtHHMM(el)}</span>`:''}  <span class="schip ${sC}">${t.status}</span></div>`;});
+    if(day.reminder){vHtml+=`<div style="font-size:11px;color:var(--amber);margin-top:4px">📌 ${esc(day.reminder)}</div>`;}
+    vHtml+=`</div>`;
+  });
+  document.getElementById('eod-visual').innerHTML=vHtml;
+
+  let txt=`WEEKLY REPORT — ALL SPORT NETTING\n${wkLabel}\n${'═'.repeat(42)}\n\n`;
+  state.days.forEach((day,di)=>{
+    const d=dateForIdx(di);const tasks=day.tasks.filter(t=>t.name.trim()||liveEl(t)>0);
+    txt+=`${DNAMES[di].toUpperCase()} — ${fmtD(d)}, ${d.getFullYear()}\n${'─'.repeat(34)}\n`;
+    if(!tasks.length){txt+=`  No tasks recorded.\n`;}
+    else tasks.forEach((t,i)=>{const mark=t.status==='done'?'✓':t.status==='paused'?'⏸':'○';const el=liveEl(t);txt+=`  ${i+1}. ${mark} ${t.name||'Unnamed'}${el>0?' ('+fmtHHMM(el)+')':''}\n`;});
+    if(day.reminder)txt+=`  📌 ${day.reminder}\n`;
+    txt+='\n';
+  });
+  document.getElementById('eod-plain').textContent=txt;
+
+  renderEODHistory();
+}
+
+function renderEODHistory(){
+  const body=document.getElementById('eod-history-body');
+  if(!body)return;
+  // Show 4 weeks of history from localStorage (we store snapshots by week key)
+  const histKey='asn_eod_hist_v1';
+  let hist={};
+  try{hist=JSON.parse(localStorage.getItem(histKey)||'{}');}catch(e){}
+
+  // Save current week snapshot
+  const wkKey=`${dateForIdx(0).toDateString()}`;
+  const snap={};
+  state.days.forEach((day,di)=>{
+    snap[DNAMES[di]]=day.tasks.filter(t=>t.name.trim()).map(t=>({name:t.name,status:t.status,time:fmtHHMM(liveEl(t))}));
+  });
+  hist[wkKey]={label:wkKey,days:snap,ts:Date.now()};
+  // Keep only 4 weeks
+  const sorted=Object.entries(hist).sort((a,b)=>b[1].ts-a[1].ts).slice(0,4);
+  hist={};sorted.forEach(([k,v])=>{hist[k]=v;});
+  try{localStorage.setItem(histKey,JSON.stringify(hist));}catch(e){}
+
+  if(!sorted.length){body.innerHTML='<div style="padding:16px;color:var(--text3);font-size:12px;font-style:italic;text-align:center">No history yet. Data is saved each time you open the EOD tab.</div>';return;}
+  body.innerHTML='';
+  sorted.forEach(([wk,data])=>{
+    const wkDiv=document.createElement('div');wkDiv.className='eod-hist-week';
+    const hdr=document.createElement('div');hdr.className='eod-hist-week-hdr';
+    hdr.textContent=`Week of ${data.label}`;wkDiv.appendChild(hdr);
+    DNAMES.forEach(dn=>{
+      const tasks=data.days[dn];
+      if(!tasks||!tasks.length)return;
+      const row=document.createElement('div');row.className='eod-hist-row';
+      row.innerHTML=`<span class="eod-hist-day">${dn.slice(0,3)}</span><span class="eod-hist-tasks">${tasks.map(t=>`${t.status==='done'?'✓':'○'} ${t.name}${t.time!=='00:00'?` (${t.time})`:''}`).join(' · ')}</span>`;
+      wkDiv.appendChild(row);
+    });
+    body.appendChild(wkDiv);
+  });
+}
+
+function copyEOD(){const text=document.getElementById('eod-plain').textContent;if(!text.trim()){alert('No report yet.');return;}navigator.clipboard.writeText(text).then(()=>{const btn=document.querySelector('.eod-btn.primary');const o=btn.textContent;btn.textContent='Copied! ✓';setTimeout(()=>btn.textContent=o,2200);}).catch(()=>{});}
+
+// ── TASK LIST ──
+const FREQ_LABELS={daily:'Daily',weekly:'Weekly',biweekly:'Bi-weekly',monthly:'Monthly',bimonthly:'Bi-monthly',quarterly:'Quarterly',yearly:'Yearly',onetime:'One-time'};
+const FREQ_CLASSES={daily:'freq-daily',weekly:'freq-weekly',biweekly:'freq-biweekly',monthly:'freq-monthly',bimonthly:'freq-bimonthly',quarterly:'freq-quarterly',yearly:'freq-yearly',onetime:'freq-onetime'};
+const DAY_COLORS_MAP={monday:'mon',tuesday:'tue',wednesday:'wed',thursday:'thu',friday:'fri',everyday:'everyday'};
+
+function addTLItem(){
+  const name=document.getElementById('tl-name').value.trim();if(!name)return;
+  const freq=document.getElementById('tl-freq').value;const day=document.getElementById('tl-day').value;const notes=document.getElementById('tl-notes-add').value.trim();
+  tlItems.push({id:Date.now(),name,freq,day,notes,checklist:[]});
+  document.getElementById('tl-name').value='';document.getElementById('tl-notes-add').value='';
+  saveTL();renderTaskList();
+}
+
+function filterTL(f,btn){currentTLFilter=f;document.querySelectorAll('.tl-day-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');renderTLFiltered();}
+function renderTaskList(){renderTLFiltered();renderTLWeekView();}
+
+function tlChecklistProgress(t){
+  const cl=t.checklist||[];if(!cl.length)return null;
+  const done=cl.filter(c=>c.checked).length;
+  return{done,total:cl.length};
+}
+
+function renderTLFiltered(){
+  const container=document.getElementById('tl-filtered-body');
+  const label=document.getElementById('tl-filtered-label');
+  const filtered=currentTLFilter==='all'?tlItems:tlItems.filter(t=>t.day===currentTLFilter);
+  const lMap={all:'All Tasks',monday:'Monday',tuesday:'Tuesday',wednesday:'Wednesday',thursday:'Thursday',friday:'Friday',everyday:'Every Day'};
+  label.textContent=lMap[currentTLFilter]||'Tasks';
+  if(!filtered.length){container.innerHTML=`<div class="tl-empty">No tasks yet. Add one above.</div>`;return;}
+  container.innerHTML='';
+  filtered.forEach((t,idx)=>{
+    // Ensure checklist array exists
+    if(!t.checklist)t.checklist=[];
+    const dc=DAY_COLORS_MAP[t.day]||'';
+    const prog=tlChecklistProgress(t);
+    const progHtml=prog?`<span class="tl-card-progress${prog.done===prog.total&&prog.total>0?' done':''}">${prog.done}/${prog.total}</span>`:'';
+    const card=document.createElement('div');
+    card.className='tl-card';card.id='tlc-'+t.id;
+
+    // Build checklist items HTML
+    const clHtml=t.checklist.map((ci,cIdx)=>`
+      <div class="tl-cl-item" id="tlci-${t.id}-${cIdx}">
+        <input type="checkbox" class="tl-cl-cb" ${ci.checked?'checked':''} onchange="togTLCL(${t.id},${cIdx},this.checked)">
+        <input type="text" class="tl-cl-text${ci.checked?' checked':''}" value="${esc(ci.text)}" placeholder="Step..." oninput="updTLCLText(${t.id},${cIdx},this.value)" onkeydown="if(event.key==='Enter'){event.preventDefault();focusTLCLNew(${t.id});}">
+        <button class="tl-cl-del" onclick="delTLCL(${t.id},${cIdx})" title="Remove step">×</button>
+      </div>`).join('');
+
+    card.innerHTML=`
+      <div class="tl-card-hdr" onclick="togTLCard(${t.id},this)">
+        <span class="tl-card-num">${idx+1}</span>
+        <input type="text" class="tl-card-name" value="${esc(t.name)}" onclick="event.stopPropagation()" oninput="updTLName(${t.id},this.value)" placeholder="Task name...">
+        <div class="tl-card-badges">
+          <span class="freq-chip ${FREQ_CLASSES[t.freq]||'freq-onetime'}">${FREQ_LABELS[t.freq]||t.freq}</span>
+          <span class="tl-day-tag ${dc}">${t.day.charAt(0).toUpperCase()+t.day.slice(1)}</span>
+          ${progHtml}
+        </div>
+        <span class="tl-card-chevron" id="tlchev-${t.id}">▾</span>
+        <button class="tl-card-del" onclick="event.stopPropagation();delTL(${t.id})" title="Delete task">×</button>
+      </div>
+      <div class="tl-card-body" id="tlcb-${t.id}">
+        <div class="tl-notes-row">
+          <div class="tl-notes-lbl">Notes</div>
+          <textarea class="tl-notes-in" rows="1" placeholder="Add notes..." oninput="updTLNotes(${t.id},this.value);autoResizeTL(this)">${esc(t.notes||'')}</textarea>
+        </div>
+        <div class="tl-checklist">
+          <div class="tl-cl-hdr">
+            <span class="tl-cl-lbl">☑ Checklist / Steps</span>
+            <button class="tl-cl-add-btn" onclick="showTLCLInput(${t.id})">+ Add Step</button>
+          </div>
+          <div class="tl-cl-items" id="tlcl-${t.id}">
+            ${t.checklist.length?clHtml:`<div class="tl-cl-empty" id="tlcl-empty-${t.id}">No steps yet — click "+ Add Step" to get started.</div>`}
+          </div>
+          <div class="tl-cl-new-row" id="tlcl-new-${t.id}" style="display:none">
+            <input type="text" class="tl-cl-new-in" id="tlcl-in-${t.id}" placeholder="Type a step and press Enter..." onkeydown="if(event.key==='Enter'){addTLCL(${t.id});}if(event.key==='Escape'){hideTLCLInput(${t.id});}">
+            <button class="tl-cl-new-go" onclick="addTLCL(${t.id})">Add</button>
+          </div>
+        </div>
+      </div>`;
+    container.appendChild(card);
+    // Auto-resize notes textarea
+    const ta=card.querySelector('.tl-notes-in');if(ta&&ta.value){autoResizeTL(ta);}
+  });
+}
+
+function autoResizeTL(el){el.style.height='auto';el.style.height=Math.max(34,el.scrollHeight)+'px';}
+
+function togTLCard(id,hdrEl){
+  const body=document.getElementById('tlcb-'+id);
+  const chev=document.getElementById('tlchev-'+id);
+  if(!body)return;
+  const open=body.classList.toggle('open');
+  if(chev)chev.classList.toggle('open',open);
+}
+
+function updTLName(id,v){const i=tlItems.find(x=>x.id===id);if(i){i.name=v;saveTL();}}
+function updTLNotes(id,v){const i=tlItems.find(x=>x.id===id);if(i){i.notes=v;saveTL();}}
+function delTL(id){if(!confirm('Delete task?'))return;tlItems=tlItems.filter(x=>x.id!==id);saveTL();renderTaskList();}
+
+// ── CHECKLIST functions ──
+function showTLCLInput(id){
+  const row=document.getElementById('tlcl-new-'+id);
+  if(row){row.style.display='flex';document.getElementById('tlcl-in-'+id)?.focus();}
+}
+function hideTLCLInput(id){
+  const row=document.getElementById('tlcl-new-'+id);
+  if(row){row.style.display='none';const inp=document.getElementById('tlcl-in-'+id);if(inp)inp.value='';}
+}
+function focusTLCLNew(id){showTLCLInput(id);}
+function addTLCL(id){
+  const inp=document.getElementById('tlcl-in-'+id);if(!inp)return;
+  const text=inp.value.trim();if(!text)return;
+  const t=tlItems.find(x=>x.id===id);if(!t)return;
+  if(!t.checklist)t.checklist=[];
+  t.checklist.push({text,checked:false});
+  inp.value='';
+  saveTL();
+  // Re-render just this card's checklist
+  renderTLCardChecklist(id);
+  // Keep input visible for rapid entry
+  setTimeout(()=>inp.focus(),50);
+}
+function togTLCL(id,cIdx,checked){
+  const t=tlItems.find(x=>x.id===id);if(!t||!t.checklist)return;
+  t.checklist[cIdx].checked=checked;
+  saveTL();
+  // Update text style and progress badge
+  const textEl=document.querySelector(`#tlci-${id}-${cIdx} .tl-cl-text`);
+  if(textEl)textEl.classList.toggle('checked',checked);
+  updateTLCardProgress(id);
+}
+function updTLCLText(id,cIdx,v){
+  const t=tlItems.find(x=>x.id===id);if(!t||!t.checklist)return;
+  t.checklist[cIdx].text=v;saveTL();
+}
+function delTLCL(id,cIdx){
+  const t=tlItems.find(x=>x.id===id);if(!t||!t.checklist)return;
+  t.checklist.splice(cIdx,1);
+  saveTL();renderTLCardChecklist(id);
+}
+function renderTLCardChecklist(id){
+  const t=tlItems.find(x=>x.id===id);if(!t)return;
+  if(!t.checklist)t.checklist=[];
+  const container=document.getElementById('tlcl-'+id);if(!container)return;
+  if(!t.checklist.length){
+    container.innerHTML=`<div class="tl-cl-empty" id="tlcl-empty-${id}">No steps yet — click "+ Add Step" to get started.</div>`;
+  } else {
+    container.innerHTML=t.checklist.map((ci,cIdx)=>`
+      <div class="tl-cl-item" id="tlci-${id}-${cIdx}">
+        <input type="checkbox" class="tl-cl-cb" ${ci.checked?'checked':''} onchange="togTLCL(${id},${cIdx},this.checked)">
+        <input type="text" class="tl-cl-text${ci.checked?' checked':''}" value="${esc(ci.text)}" placeholder="Step..." oninput="updTLCLText(${id},${cIdx},this.value)" onkeydown="if(event.key==='Enter'){event.preventDefault();focusTLCLNew(${id});}">
+        <button class="tl-cl-del" onclick="delTLCL(${id},${cIdx})" title="Remove step">×</button>
+      </div>`).join('');
+  }
+  updateTLCardProgress(id);
+}
+function updateTLCardProgress(id){
+  const t=tlItems.find(x=>x.id===id);if(!t)return;
+  const cl=t.checklist||[];
+  const badges=document.querySelector(`#tlc-${id} .tl-card-badges`);
+  if(!badges)return;
+  // Remove old progress badge
+  const old=badges.querySelector('.tl-card-progress');if(old)old.remove();
+  if(cl.length){
+    const done=cl.filter(c=>c.checked).length;
+    const span=document.createElement('span');
+    span.className='tl-card-progress'+(done===cl.length?' done':'');
+    span.textContent=`${done}/${cl.length}`;
+    badges.appendChild(span);
+  }
+}
+
+function renderTLWeekView(){
+  const grid=document.getElementById('tl-week-grid');grid.innerHTML='';
+  const days=['monday','tuesday','wednesday','thursday','friday'];
+  const dcls=['mon','tue','wed','thu','fri'];const dlabels=['Monday','Tuesday','Wednesday','Thursday','Friday'];
+  days.forEach((day,di)=>{
+    const col=document.createElement('div');col.className='tl-week-col';
+    const hdr=document.createElement('div');hdr.className='tl-week-col-hdr '+dcls[di];hdr.textContent=dlabels[di];col.appendChild(hdr);
+    const body=document.createElement('div');body.className='tl-week-col-body';
+    const tasks=tlItems.filter(t=>t.day===day||t.day==='everyday');
+    if(!tasks.length){const e=document.createElement('div');e.className='tl-week-empty';e.textContent='No tasks';body.appendChild(e);}
+    else tasks.forEach(t=>{const item=document.createElement('div');item.className='tl-week-item';item.innerHTML=`${esc(t.name)}<br><span class="tl-freq-small">${FREQ_LABELS[t.freq]||t.freq}</span>`;body.appendChild(item);});
+    col.appendChild(body);grid.appendChild(col);
+  });
+}
+
+// ── REMINDERS ──
+function addReminder(){const sub=document.getElementById('rem-subject').value.trim();const body=document.getElementById('rem-body').value.trim();const type=document.getElementById('rem-type').value;if(!sub){document.getElementById('rem-subject').focus();return;}remItems.unshift({id:Date.now(),subject:sub,body,type});document.getElementById('rem-subject').value='';document.getElementById('rem-body').value='';saveRem();renderReminders();}
+function renderReminders(){
+  const list=document.getElementById('rem-list');if(!remItems.length){list.innerHTML='<div class="rem-empty">No notes or templates yet.</div>';return;}
+  list.innerHTML='';
+  remItems.forEach(item=>{
+    const div=document.createElement('div');div.className='rem-item';
+    const tl=item.type==='note'?'Note':item.type==='email'?'Email template':'Template';const tc=item.type==='note'?'rtb-note':item.type==='email'?'rtb-email':'rtb-template';const ic=item.type==='note'?'📝':item.type==='email'?'📧':'📋';
+    div.innerHTML=`<div class="rem-subject-row" onclick="togRemBody(${item.id},this)"><span class="rem-subject-icon">${ic}</span><span class="rem-subject-text">${esc(item.subject)}</span><span class="rem-type-badge ${tc}">${tl}</span><button class="rem-del" onclick="event.stopPropagation();delRem(${item.id})" title="Delete">×</button><span class="rem-chevron" id="rc-${item.id}">▾</span></div>
+    <div class="rem-body-panel" id="rbp-${item.id}"><div class="rem-body-text" id="rbt-${item.id}">${esc(item.body||'(no content)').replace(/\n/g,'<br>')}</div><div style="display:flex;gap:6px;margin-bottom:6px"><button class="rem-edit-btn" onclick="togRemEdit(${item.id})">✏ Edit</button><button class="rem-edit-btn" onclick="copyRem(${item.id})" style="color:var(--blue);border-color:var(--blue-bg)">Copy</button></div><textarea class="rem-edit-area" id="rea-${item.id}" oninput="updRemBody(${item.id},this.value)">${esc(item.body)}</textarea><button class="rem-save-btn" id="rsb-${item.id}" onclick="saveRemEdit(${item.id})">Save</button></div>`;
+    list.appendChild(div);
+  });
+}
+function togRemBody(id){const p=document.getElementById('rbp-'+id);const c=document.getElementById('rc-'+id);if(!p)return;p.classList.toggle('open');if(c)c.classList.toggle('open');}
+function togRemEdit(id){const a=document.getElementById('rea-'+id);const t=document.getElementById('rbt-'+id);const b=document.getElementById('rsb-'+id);if(!a)return;const open=a.style.display==='block';a.style.display=open?'none':'block';if(t)t.style.display=open?'block':'none';if(b)b.style.display=open?'none':'inline-block';}
+function updRemBody(id,v){const i=remItems.find(x=>x.id===id);if(i)i.body=v;}
+function saveRemEdit(id){const i=remItems.find(x=>x.id===id);if(!i)return;saveRem();const t=document.getElementById('rbt-'+id);if(t)t.innerHTML=esc(i.body).replace(/\n/g,'<br>');togRemEdit(id);}
+function copyRem(id){const i=remItems.find(x=>x.id===id);if(!i)return;navigator.clipboard.writeText(i.body).then(()=>alert('Copied!')).catch(()=>{});}
+function delRem(id){if(!confirm('Delete this?'))return;remItems=remItems.filter(x=>x.id!==id);saveRem();renderReminders();}
+
+// ── CALENDAR ──
+function calDateKey(y,m,d){return `${y}-${m}-${d}`;}
+
+function renderCalendar(){
+  renderMainCal();
+  renderYearCal();
+}
+
+function calNavMonth(dir){
+  calViewMonth+=dir;
+  if(calViewMonth>11){calViewMonth=0;calViewYear++;}
+  if(calViewMonth<0){calViewMonth=11;calViewYear--;}
+  renderMainCal();
+}
+
+function renderMainCal(){
+  const label=document.getElementById('cal-month-label');
+  label.textContent=MONS[calViewMonth]+' '+calViewYear;
+  const grid=document.getElementById('cal-grid');grid.innerHTML='';
+  const firstDay=new Date(calViewYear,calViewMonth,1).getDay();
+  const daysInMonth=new Date(calViewYear,calViewMonth+1,0).getDate();
+  const daysInPrev=new Date(calViewYear,calViewMonth,0).getDate();
+  const todayStr=calDateKey(TODAY.getFullYear(),TODAY.getMonth(),TODAY.getDate());
+
+  // Prev month overflow
+  for(let i=firstDay-1;i>=0;i--){
+    const cell=document.createElement('div');cell.className='cal-cell other-month';
+    const dayNum=daysInPrev-i;
+    const y=calViewMonth===0?calViewYear-1:calViewYear,m=calViewMonth===0?11:calViewMonth-1;
+    cell.innerHTML=`<div class="cal-day-num">${dayNum}</div>`;
+    cell.onclick=()=>openCalModal(y,m,dayNum);grid.appendChild(cell);
+  }
+  // Current month
+  for(let d=1;d<=daysInMonth;d++){
+    const key=calDateKey(calViewYear,calViewMonth,d);
+    const isToday=key===todayStr;
+    const entry=calEntries[key];
+    const cell=document.createElement('div');
+    let cls='cal-cell';
+    if(isToday)cls+=' today-cell';
+    if(entry&&(entry.reminders?.r3d||entry.reminders?.r1d||entry.reminders?.r30m)){
+      const daysLeft=(new Date(calViewYear,calViewMonth,d)-new Date())/(1000*60*60*24);
+      if(daysLeft<=1)cls+=' urgent-reminder';
+      else cls+=' has-reminder';
+    }
+    cell.className=cls;
+    const dayNumEl=document.createElement('div');dayNumEl.className='cal-day-num';
+    if(isToday){dayNumEl.style.cssText='background:var(--blue);color:#fff;width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;';}
+    dayNumEl.textContent=d;cell.appendChild(dayNumEl);
+    if(entry){
+      if(entry.text){const e=document.createElement('div');e.className=`cal-entry cal-color-${entry.color||'blue'}`;e.textContent=entry.text;cell.appendChild(e);}
+      if(entry.tag){const t=document.createElement('div');t.className='cal-entry cal-color-gray';t.textContent='🏷 '+entry.tag;cell.appendChild(t);}
+      if(entry.reminders&&(entry.reminders.r3d||entry.reminders.r1d||entry.reminders.r30m)){
+        const dot=document.createElement('div');dot.className='cal-reminder-dot';cell.appendChild(dot);
+      }
+    }
+    cell.onclick=()=>openCalModal(calViewYear,calViewMonth,d);
+    grid.appendChild(cell);
+  }
+  // Fill remaining
+  const total=firstDay+daysInMonth;const rem=total%7===0?0:7-(total%7);
+  for(let d2=1;d2<=rem;d2++){
+    const cell=document.createElement('div');cell.className='cal-cell other-month';
+    const y=calViewMonth===11?calViewYear+1:calViewYear,m=calViewMonth===11?0:calViewMonth+1;
+    cell.innerHTML=`<div class="cal-day-num">${d2}</div>`;
+    cell.onclick=()=>openCalModal(y,m,d2);grid.appendChild(cell);
+  }
+}
+
+function renderYearCal(){
+  const yr=calViewYear;
+  document.getElementById('yr-cal-title').textContent=`${yr} — Full Year`;
+  const grid=document.getElementById('yr-cal-grid');grid.innerHTML='';
+  const todayStr=calDateKey(TODAY.getFullYear(),TODAY.getMonth(),TODAY.getDate());
+  for(let m=0;m<12;m++){
+    const mDiv=document.createElement('div');mDiv.className='yr-month';
+    const mName=document.createElement('div');mName.className='yr-month-name';mName.textContent=MONS_S[m];mDiv.appendChild(mName);
+    const dowRow=document.createElement('div');dowRow.className='yr-dow-row';
+    ['S','M','T','W','T','F','S'].forEach(d=>{const c=document.createElement('div');c.className='yr-dow-cell';c.textContent=d;dowRow.appendChild(c);});
+    mDiv.appendChild(dowRow);
+    const grd=document.createElement('div');grd.className='yr-grid';
+    const fd=new Date(yr,m,1).getDay();
+    const dim=new Date(yr,m+1,0).getDate();
+    const prevDim=new Date(yr,m,0).getDate();
+    for(let i=fd-1;i>=0;i--){const c=document.createElement('div');c.className='yr-cell other-m';c.textContent=prevDim-i;grd.appendChild(c);}
+    for(let d=1;d<=dim;d++){
+      const key=calDateKey(yr,m,d);const entry=calEntries[key];
+      const c=document.createElement('div');
+      let cls='yr-cell';if(key===todayStr)cls+=' today-yr';if(entry&&entry.text)cls+=' has-entry';
+      if(entry&&(entry.reminders?.r3d||entry.reminders?.r1d||entry.reminders?.r30m))cls+=' has-reminder-yr';
+      c.className=cls;c.textContent=d;
+      c.onclick=()=>{calViewMonth=m;renderMainCal();openCalModal(yr,m,d);};
+      grd.appendChild(c);
+    }
+    const total=fd+dim;const rem=total%7===0?0:7-(total%7);
+    for(let d2=1;d2<=rem;d2++){const c=document.createElement('div');c.className='yr-cell other-m';c.textContent=d2;grd.appendChild(c);}
+    mDiv.appendChild(grd);grid.appendChild(mDiv);
+  }
+}
+
+function openCalModal(y,m,d){
+  const key=calDateKey(y,m,d);calEditKey=key;
+  const entry=calEntries[key]||{};
+  document.getElementById('cal-modal-date-title').textContent=`${MONS[m]} ${d}, ${y}`;
+  document.getElementById('cal-entry-text').value=entry.text||'';
+  document.getElementById('cal-entry-tag').value=entry.tag||'';
+  document.getElementById('cal-entry-notes').value=entry.notes||'';
+  document.getElementById('cal-entry-time').value=entry.remTime||'';
+  document.getElementById('cal-rem-3d').checked=entry.reminders?.r3d||false;
+  document.getElementById('cal-rem-1d').checked=entry.reminders?.r1d||false;
+  document.getElementById('cal-rem-30m').checked=entry.reminders?.r30m||false;
+  // Color
+  calSelectedColor=entry.color||'blue';
+  document.querySelectorAll('.cal-color-swatch').forEach(s=>{s.classList.toggle('selected',s.dataset.color===calSelectedColor);});
+  document.getElementById('cal-del-btn').style.display=entry.text?'block':'none';
+  document.getElementById('cal-modal').classList.add('open');
+}
+function closeCalModal(){document.getElementById('cal-modal').classList.remove('open');calEditKey=null;}
+function selectCalColor(color,el){
+  calSelectedColor=color;
+  document.querySelectorAll('.cal-color-swatch').forEach(s=>s.classList.remove('selected'));
+  el.classList.add('selected');
+}
+function saveCalEntry(){
+  if(!calEditKey)return;
+  const text=document.getElementById('cal-entry-text').value.trim();
+  const tag=document.getElementById('cal-entry-tag').value.trim();
+  const notes=document.getElementById('cal-entry-notes').value.trim();
+  const remTime=document.getElementById('cal-entry-time').value;
+  const r3d=document.getElementById('cal-rem-3d').checked;
+  const r1d=document.getElementById('cal-rem-1d').checked;
+  const r30m=document.getElementById('cal-rem-30m').checked;
+  if(!text&&!tag&&!notes){delete calEntries[calEditKey];}
+  else{calEntries[calEditKey]={text,tag,notes,color:calSelectedColor,remTime,reminders:{r3d,r1d,r30m},savedAt:Date.now()};}
+  saveCal();closeCalModal();renderCalendar();
+}
+function deleteCalEntry(){
+  if(!calEditKey)return;
+  if(!confirm('Delete this calendar entry?'))return;
+  delete calEntries[calEditKey];saveCal();closeCalModal();renderCalendar();
+}
+
+// ── DEADLINES ──
+function checkDeadlines(){
+  const now=Date.now();const soon=[];
+  qItems.forEach(q=>{if(q.deadline&&!q.done){const diff=(new Date(q.deadline)-now)/(1000*60*60*24);if(diff>=0&&diff<=3)soon.push({name:q.name,diff:Math.ceil(diff)});}});
+  const banner=document.getElementById('dl-banner');const txt=document.getElementById('dl-banner-text');
+  if(soon.length){txt.textContent='Deadline approaching: '+soon.map(s=>s.diff===0?`"${s.name}" due TODAY!`:`"${s.name}" in ${s.diff} day${s.diff>1?'s':''}`).join(' · ');banner.classList.add('show');}
+  else banner.classList.remove('show');
+  const pending=qItems.filter(q=>!q.done).length;
+  const badge=document.getElementById('q-badge');badge.textContent=pending;badge.style.display=pending>0?'inline':'none';
+}
+
+// ── EXPORT / IMPORT BACKUP ──
+function showToast(msg, ok=true){
+  const t=document.getElementById('backup-toast');
+  if(!t)return;
+  t.textContent=msg;
+  t.style.borderLeftColor=ok?'#3FB950':'#F85149';
+  t.style.display='block';t.style.opacity='1';
+  setTimeout(()=>{t.style.opacity='0';setTimeout(()=>t.style.display='none',300);},3000);
+}
+
+function exportData(){
+  const now=new Date();
+  const pad=n=>n<10?'0'+n:''+n;
+  const stamp=`${now.getFullYear()}${pad(now.getMonth()+1)}${pad(now.getDate())}_${pad(now.getHours())}${pad(now.getMinutes())}`;
+  const backup={
+    version:3,
+    exportedAt:now.toISOString(),
+    tracker: state,
+    queue: qItems,
+    reminders: remItems,
+    taskList: tlItems,
+    calendar: calEntries,
+    wrEmails: wrEmails,
+    wrTableOverrides: wrTableOverrides
+  };
+  const blob=new Blob([JSON.stringify(backup,null,2)],{type:'application/json'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download=`ASN_Backup_${stamp}.json`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+  showToast('✓ Backup downloaded! Keep this file safe.');
+}
+
+function importData(input){
+  const file=input.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    try{
+      const data=JSON.parse(e.target.result);
+      if(!data.version||!data.tracker){showToast('✗ Invalid backup file.',false);return;}
+      if(!confirm('This will REPLACE all current data with the backup. Are you sure?')){input.value='';return;}
+      applyPayload(data);
+      triggerSave();
+      showToast('✓ Backup restored! Reloading...');
+      setTimeout(()=>location.reload(),1200);
+    }catch(err){
+      showToast('✗ Could not read file: '+err.message,false);
+    }
+  };
+  reader.readAsText(file);
+  input.value='';
+}
+
+// ── INIT ──
+async function init(){
+  // ── 1. Init workspace ID from URL hash ──
+  initWorkspaceId();
+
+  // ── 2. Fix up any in-memory state issues ──
+  state.days.forEach(day=>{
+    if(!day.breakData)day.breakData={elapsed:0,status:'idle',startedAt:null,log:[]};
+    day.tasks.forEach(t=>{
+      if(!t.notes)t.notes='';
+      if(!t.breakData)t.breakData={elapsed:0,status:'idle',startedAt:null,log:[]};
+      if(t.status==='running'&&t.startedAt){t.elapsed+=Math.floor((Date.now()-t.startedAt)/1000);t.startedAt=null;t.status='paused';}
+    });
+    if(day.breakData.status==='running'&&day.breakData.startedAt){
+      day.breakData.elapsed+=Math.floor((Date.now()-day.breakData.startedAt)/1000);
+      day.breakData.startedAt=null;day.breakData.status='paused';
+    }
+  });
+
+  // ── 3. Apply view mode if not in edit mode ──
+  applyViewMode();
+
+  // ── 4. Init Firebase (if configured) ──
+  const fbConfig = loadFirebaseConfig();
+  if(fbConfig){
+    initFirebase(fbConfig);
+  } else {
+    // Show setup prompt if not skipped
+    const skipped = localStorage.getItem('asn_setup_skipped');
+    if(!skipped && _isOwner){
+      // Small delay so the page renders first
+      setTimeout(()=>openSetup(), 800);
+    }
+  }
+
+  // ── 5. Load from Firebase if available ──
+  updSaveIndicator('', 'Loading…');
+  if(db){
+    // If URL has edit token but we're not yet marked as edit mode, verify it
+    const hash = getHashParams();
+    if(!_isEditMode && hash.tok){
+      const valid = await verifyEditToken(_workspaceId, hash.tok);
+      if(valid){
+        _isEditMode = true;
+        document.body.classList.remove('view-mode');
+        document.getElementById('view-mode-badge')?.classList.remove('show');
+        const setupBtn=document.getElementById('setup-btn');
+        if(setupBtn)setupBtn.style.display='';
+      }
+    }
+    const cloudData = await firebaseLoad();
+    if(cloudData){
+      applyPayload(cloudData);
+      const t=new Date().toLocaleTimeString('en-PH',{hour:'2-digit',minute:'2-digit'});
+      updSaveIndicator('saved','☁ Synced '+t);
+    } else if(_isEditMode){
+      // First load for this workspace — save local data to cloud
+      updSaveIndicator('', _isOwner?'☁ New workspace':'☁ Connected');
+      if(_isOwner) triggerSave();
+    } else {
+      updSaveIndicator('error','No data found');
+    }
+  } else {
+    // No Firebase — show default indicator
+    updSaveIndicator('', 'No file linked');
+    if(_fsaSupported){
+      try{
+        const h = await idbLoadHandle();
+        if(h){
+          _fileHandle = h;
+          const perm = await h.queryPermission({mode:'readwrite'});
+          if(perm === 'granted'){
+            const loaded = await loadFromFile(h);
+            if(loaded){renderTracker();renderQ();}
+            const fname = h.name || 'ASN_AutoSave.json';
+            updSaveIndicator('saved', '✓ '+fname);
+            document.getElementById('setup-btn').textContent = '✓ File Linked';
+            document.getElementById('setup-btn').className = 'setup-btn linked';
+          } else {
+            updSaveIndicator('', '📄 '+(h.name||'file')+' (click to allow)');
+            document.getElementById('setup-btn').textContent = '🔓 Allow Access';
+            document.getElementById('setup-btn').className = 'setup-btn';
+          }
+        }
+      }catch(e){}
+    }
+  }
+
+  saveS();
+  renderTracker();
+  renderQ();
+  checkDeadlines();
+  setInterval(checkDeadlines,60000);
+  checkCalAlerts();
+  loadWrEmailFields();
+}
+init();
+</script>
+</body>
+</html>
