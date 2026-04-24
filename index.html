@@ -4,9 +4,60 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ASN Workspace — All Sport Netting</title>
-<!-- Firebase SDK -->
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<!-- Firebase SDK — loaded dynamically with fallback CDNs -->
+<script>
+(function() {
+  var FIREBASE_VERSION = '9.23.0';
+  var sdkBase_primary  = 'https://www.gstatic.com/firebasejs/' + FIREBASE_VERSION;
+  var sdkBase_fallback = 'https://cdn.jsdelivr.net/npm/firebase@' + FIREBASE_VERSION;
+
+  function loadScript(src, onSuccess, onError) {
+    var s = document.createElement('script');
+    s.src = src;
+    s.onload = onSuccess;
+    s.onerror = onError;
+    document.head.appendChild(s);
+  }
+
+  function loadFirestore(base, onSuccess, onError) {
+    loadScript(base + '/firebase-firestore-compat.js', onSuccess, onError);
+  }
+
+  function loadApp(base, onDone) {
+    loadScript(base + '/firebase-app-compat.js', function() {
+      loadFirestore(base, onDone, function() {
+        console.warn('Firestore failed from ' + base);
+        onDone(new Error('firestore failed'));
+      });
+    }, function() {
+      console.warn('firebase-app failed from ' + base);
+      onDone(new Error('app failed'));
+    });
+  }
+
+  // Try primary CDN first, then fallback
+  loadApp(sdkBase_primary, function(err) {
+    if (!err) {
+      console.log('Firebase SDK loaded from primary CDN.');
+      window.__firebaseLoaded = true;
+      window.dispatchEvent(new Event('firebase-sdk-ready'));
+    } else {
+      console.warn('Primary CDN failed, trying fallback CDN...');
+      loadApp(sdkBase_fallback, function(err2) {
+        if (!err2) {
+          console.log('Firebase SDK loaded from fallback CDN.');
+          window.__firebaseLoaded = true;
+          window.dispatchEvent(new Event('firebase-sdk-ready'));
+        } else {
+          console.warn('Both Firebase CDNs failed. Running in offline mode.');
+          window.__firebaseLoaded = false;
+          window.dispatchEvent(new Event('firebase-sdk-ready'));
+        }
+      });
+    }
+  });
+})();
+</script>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;1,400&family=Mulish:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -1123,7 +1174,15 @@ body.view-mode button:not(.ntab):not(.hdr-backup-btn):not(.share-btn):not(.cloud
 // This is set by the user via the setup wizard and stored in localStorage.
 // You can also paste your config directly here as a fallback:
 // const HARDCODED_FIREBASE_CONFIG = { apiKey:"...", projectId:"...", ... };
-const HARDCODED_FIREBASE_CONFIG = null;
+const HARDCODED_FIREBASE_CONFIG = {
+  apiKey: "AIzaSyBYQGnwHQ2OJx-21ukJ8IQhotKu_97_L8k",
+  authDomain: "asn-workspace-by-mary.firebaseapp.com",
+  projectId: "asn-workspace-by-mary",
+  storageBucket: "asn-workspace-by-mary.firebasestorage.app",
+  messagingSenderId: "763691914927",
+  appId: "1:763691914927:web:371e771a8237fa06e1265a",
+  measurementId: "G-DTX788EMXF"
+};
 
 // ── WORKSPACE ID ──────────────────────────────────────────────────────
 // Stored in URL hash: #ws=XXXXX  — each unique ID = separate workspace
@@ -1208,13 +1267,15 @@ function loadFirebaseConfig(){
 
 function initFirebase(config){
   if(!config) return false;
+  if(typeof firebase === 'undefined'){
+    console.warn('Firebase SDK not loaded — skipping init.');
+    return false;
+  }
   try{
-    // Prevent double-init
     if(firebase.apps.length===0){
       firebase.initializeApp(config);
     }
     db = firebase.firestore();
-    // Update cloud button appearance
     const btn = document.getElementById('cloud-btn');
     if(btn){btn.textContent='☁ Synced';btn.className='cloud-btn';btn.onclick=()=>openShare();}
     return true;
@@ -2915,7 +2976,23 @@ async function init(){
   checkCalAlerts();
   loadWrEmailFields();
 }
-init();
+// Wait for Firebase SDK to finish loading (dynamic loader above fires 'firebase-sdk-ready')
+// then also wait for DOM to be ready before running init()
+function startApp() {
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+}
+
+if (window.__firebaseLoaded !== undefined) {
+  // SDK already finished loading (sync case)
+  startApp();
+} else {
+  // SDK still loading — wait for it
+  window.addEventListener('firebase-sdk-ready', startApp);
+}
 </script>
 </body>
 </html>
