@@ -759,53 +759,53 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:14
 .attach-modal-body iframe{width:75vw;height:70vh;border:none;border-radius:6px}
 
 /* ── RULES / ESCALATION ── */
-.rule-item{border-bottom:1px solid var(--border);padding:14px 16px}
-.rule-item:last-child{border-bottom:none}
-.rule-item-hdr{display:flex;align-items:center;gap:8px;margin-bottom:8px}
-.rule-title-in{flex:1;border:none;background:transparent;font-family:var(--sans);font-size:14px;font-weight:600;color:var(--text);padding:3px 6px;border-radius:4px}
+/* ── RULES CARD GRID ── */
+.rules-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px}
+.rule-item{background:var(--surface);border:1px solid var(--border);border-radius:var(--rlg);overflow:hidden;display:flex;flex-direction:column}
+.rule-item-hdr{padding:10px 12px;background:var(--surface2);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:7px}
+.rule-title-in{flex:1;border:none;background:transparent;font-family:var(--sans);font-size:13px;font-weight:600;color:var(--text);padding:2px 4px;border-radius:4px;min-width:0}
 .rule-title-in:focus{outline:none;background:var(--surface3)}
-.rule-type-sel{padding:3px 8px;border-radius:20px;border:1px solid var(--border);background:var(--surface3);font-family:var(--mono);font-size:10px;font-weight:500;color:var(--text3);cursor:pointer}
-.rule-body-in{width:100%;min-height:70px;padding:8px 10px;border-radius:var(--r);border:1px solid var(--border);background:var(--surface3);font-family:var(--sans);font-size:13px;color:var(--text);resize:vertical;line-height:1.6}
-.rule-body-in:focus{outline:none;border-color:var(--blue)}
-.rule-del-btn{background:none;border:none;cursor:pointer;color:var(--text3);font-size:16px;padding:2px 5px;line-height:1}
+.rule-type-sel{padding:2px 7px;border-radius:20px;border:1px solid var(--border);background:var(--surface3);font-family:var(--mono);font-size:10px;font-weight:500;color:var(--text3);cursor:pointer;flex-shrink:0}
+.rule-body-in{width:100%;box-sizing:border-box;min-height:72px;max-height:160px;padding:10px 12px;border:none;border-top:none;background:transparent;font-family:var(--sans);font-size:13px;color:var(--text);resize:none;line-height:1.6;flex:1}
+.rule-body-in:focus{outline:none;background:var(--surface2)}
+.rule-del-btn{background:none;border:none;cursor:pointer;color:var(--text3);font-size:15px;padding:2px 4px;line-height:1;flex-shrink:0}
 .rule-del-btn:hover{color:var(--red)}
-.rule-type-badge{font-family:var(--mono);font-size:9px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;padding:2px 8px;border-radius:20px}
+.rule-type-badge{font-family:var(--mono);font-size:9px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;padding:2px 7px;border-radius:20px;flex-shrink:0}
 .rtype-rule{background:var(--blue-bg);color:var(--blue)}
 .rtype-escalation{background:var(--red-bg);color:var(--red)}
 .rtype-policy{background:var(--green-bg);color:var(--green)}
 .rtype-decision{background:var(--amber-bg);color:var(--amber)}
 
 /* ── SOP ── */
-.sop-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--rlg);overflow:hidden;margin-bottom:1.25rem}
-.sop-card-hdr{padding:12px 16px;background:var(--surface2);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;cursor:pointer}
-.sop-title-in{flex:1;border:none;background:transparent;font-family:var(--serif);font-size:16px;color:var(--text);padding:2px 6px;border-radius:4px}
+/* ── SOP CARDS ── */
+.sop-list-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px}
+.sop-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--rlg);overflow:hidden;display:flex;flex-direction:column}
+.sop-card-hdr{padding:12px 14px;background:var(--surface2);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px}
+.sop-title-in{flex:1;border:none;background:transparent;font-family:var(--serif);font-size:15px;font-weight:600;color:var(--text);padding:2px 4px;border-radius:4px;min-width:0}
 .sop-title-in:focus{outline:none;background:var(--surface3)}
-.sop-task-in{padding:3px 8px;border-radius:20px;border:1px solid var(--border);background:var(--surface3);font-family:var(--mono);font-size:10px;color:var(--text3)}
+.sop-task-in{padding:2px 8px;border-radius:20px;border:1px solid var(--border);background:var(--surface3);font-family:var(--mono);font-size:10px;color:var(--text3);max-width:110px}
 .sop-task-in:focus{outline:none;border-color:var(--blue)}
-.sop-del-btn{background:none;border:none;cursor:pointer;color:var(--text3);font-size:16px;padding:2px 5px;line-height:1}
+.sop-del-btn{background:none;border:none;cursor:pointer;color:var(--text3);font-size:16px;padding:2px 4px;line-height:1;flex-shrink:0}
 .sop-del-btn:hover{color:var(--red)}
-.sop-card-body{display:none;padding:14px 16px}
-.sop-card-body.open{display:block}
-.sop-step{border:1px solid var(--border);border-radius:var(--r);padding:12px;margin-bottom:10px;background:var(--surface2)}
-.sop-step-hdr{display:flex;align-items:center;gap:8px;margin-bottom:8px}
-.sop-step-num{font-family:var(--mono);font-size:10px;font-weight:700;color:var(--blue);background:var(--blue-bg);padding:2px 8px;border-radius:20px;flex-shrink:0}
-.sop-step-title-in{flex:1;border:none;background:transparent;font-family:var(--sans);font-size:13px;font-weight:600;color:var(--text);padding:2px 5px;border-radius:4px}
+.sop-card-body{padding:12px 14px;flex:1;display:flex;flex-direction:column;gap:8px}
+.sop-step{border:1px solid var(--border);border-radius:var(--r);padding:10px 12px;background:var(--surface2)}
+.sop-step-hdr{display:flex;align-items:center;gap:7px;margin-bottom:6px}
+.sop-step-num{font-family:var(--mono);font-size:10px;font-weight:700;color:var(--blue);background:var(--blue-bg);padding:2px 7px;border-radius:20px;flex-shrink:0}
+.sop-step-title-in{flex:1;border:none;background:transparent;font-family:var(--sans);font-size:12px;font-weight:600;color:var(--text);padding:2px 4px;border-radius:4px;min-width:0}
 .sop-step-title-in:focus{outline:none;background:var(--surface3)}
-.sop-step-del{background:none;border:none;cursor:pointer;color:var(--text3);font-size:15px;padding:2px;line-height:1}
+.sop-step-del{background:none;border:none;cursor:pointer;color:var(--text3);font-size:14px;padding:2px;line-height:1;flex-shrink:0}
 .sop-step-del:hover{color:var(--red)}
-.sop-step-body-in{width:100%;min-height:60px;padding:7px 10px;border-radius:var(--r);border:1px solid var(--border);background:var(--surface3);font-family:var(--sans);font-size:13px;color:var(--text);resize:vertical;line-height:1.6;margin-bottom:8px}
+.sop-step-body-in{width:100%;box-sizing:border-box;min-height:52px;max-height:120px;padding:6px 8px;border-radius:6px;border:1px solid var(--border);background:var(--surface3);font-family:var(--sans);font-size:12px;color:var(--text);resize:none;line-height:1.5;margin-bottom:6px}
 .sop-step-body-in:focus{outline:none;border-color:var(--blue)}
-.sop-step-attachments{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px}
-.sop-step-attach-btn{display:inline-flex;align-items:center;gap:5px;padding:4px 12px;border-radius:20px;border:1px dashed var(--border-md);background:var(--surface3);color:var(--text3);font-size:11px;cursor:pointer;transition:all .12s;font-family:var(--sans)}
+.sop-step-attachments{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:6px}
+.sop-step-attach-btn{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:20px;border:1px dashed var(--border-md);background:var(--surface3);color:var(--text3);font-size:11px;cursor:pointer;transition:all .12s;font-family:var(--sans)}
 .sop-step-attach-btn:hover{border-color:var(--blue);color:var(--blue)}
-.sop-step-img{max-width:200px;max-height:140px;border-radius:6px;border:1px solid var(--border);cursor:pointer;object-fit:cover}
-.sop-step-pdf{display:inline-flex;align-items:center;gap:5px;background:var(--red-bg);color:var(--red);border:1px solid rgba(248,81,73,.25);border-radius:6px;padding:4px 10px;font-size:11px;font-family:var(--mono);cursor:pointer}
-.sop-step-remove-attach{background:none;border:none;cursor:pointer;color:var(--text3);font-size:12px;padding:0 2px;line-height:1}
+.sop-step-img{max-width:100px;max-height:80px;border-radius:5px;border:1px solid var(--border);cursor:pointer;object-fit:cover}
+.sop-step-pdf{display:inline-flex;align-items:center;gap:4px;background:var(--red-bg);color:var(--red);border:1px solid rgba(248,81,73,.25);border-radius:5px;padding:3px 8px;font-size:11px;font-family:var(--mono);cursor:pointer}
+.sop-step-remove-attach{background:none;border:none;cursor:pointer;color:var(--text3);font-size:11px;padding:0 2px;line-height:1}
 .sop-step-remove-attach:hover{color:var(--red)}
-.sop-add-step-btn{padding:7px 16px;border-radius:20px;border:1px dashed var(--border-md);background:transparent;color:var(--text3);font-size:12px;font-family:var(--sans);cursor:pointer;transition:all .12s;margin-top:4px}
+.sop-add-step-btn{padding:6px 14px;border-radius:20px;border:1px dashed var(--border-md);background:transparent;color:var(--text3);font-size:11px;font-family:var(--sans);cursor:pointer;transition:all .12s;align-self:flex-start;margin-top:2px}
 .sop-add-step-btn:hover{border-color:var(--blue);color:var(--blue)}
-.sop-chevron{font-size:12px;color:var(--text3);transition:transform .15s;margin-left:auto}
-.sop-chevron.open{transform:rotate(180deg)}
 
 /* ── OUTSOURCE DAILY CHECKLIST ── */
 .osg-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--rlg);overflow:hidden;margin-bottom:1.25rem}
@@ -841,27 +841,29 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:14
 .osg-chevron.open{transform:rotate(180deg)}
 .osg-total-time{font-family:var(--mono);font-size:10px;color:var(--text3);background:var(--surface3);padding:2px 9px;border-radius:20px}
 
-/* ── IMPORTANT INFO ── */
-.info-section{background:var(--surface);border:1px solid var(--border);border-radius:var(--rlg);overflow:hidden;margin-bottom:1.25rem}
-.info-section-hdr{padding:11px 16px;background:var(--surface2);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
-.info-section-title-in{flex:1;border:none;background:transparent;font-family:var(--serif);font-size:16px;color:var(--text);padding:2px 6px;border-radius:4px}
+/* ── IMPORTANT INFO CARD GRID ── */
+.info-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px}
+.info-section{background:var(--surface);border:1px solid var(--border);border-radius:var(--rlg);overflow:hidden;display:flex;flex-direction:column}
+.info-section-hdr{padding:10px 12px;background:var(--surface2);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px}
+.info-section-title-in{flex:1;border:none;background:transparent;font-family:var(--sans);font-size:13px;font-weight:600;color:var(--text);padding:2px 4px;border-radius:4px;min-width:0}
 .info-section-title-in:focus{outline:none;background:var(--surface3)}
-.info-section-icon-sel{padding:3px 7px;border-radius:var(--r);border:1px solid var(--border);background:var(--surface3);font-size:14px;cursor:pointer}
-.info-section-del{background:none;border:none;cursor:pointer;color:var(--text3);font-size:16px;padding:2px 5px;line-height:1}
+.info-section-icon-sel{padding:2px 6px;border-radius:var(--r);border:1px solid var(--border);background:var(--surface3);font-size:13px;cursor:pointer;flex-shrink:0}
+.info-section-del{background:none;border:none;cursor:pointer;color:var(--text3);font-size:15px;padding:2px 4px;line-height:1;flex-shrink:0}
 .info-section-del:hover{color:var(--red)}
-.info-body{padding:12px 16px}
-.info-item{display:flex;align-items:flex-start;gap:8px;padding:7px 0;border-bottom:1px solid var(--border)}
+.info-body{padding:10px 12px;flex:1}
+.info-item{display:flex;align-items:center;gap:6px;padding:5px 0;border-bottom:1px solid var(--border)}
 .info-item:last-child{border-bottom:none}
-.info-item-label-in{width:130px;border:none;background:transparent;font-family:var(--mono);font-size:11px;font-weight:600;color:var(--text3);padding:3px 5px;border-radius:4px;flex-shrink:0}
+.info-item-label-in{width:100px;border:none;background:transparent;font-family:var(--mono);font-size:10px;font-weight:600;color:var(--text3);padding:2px 4px;border-radius:4px;flex-shrink:0}
 .info-item-label-in:focus{outline:none;background:var(--surface3)}
-.info-item-val-in{flex:1;border:none;background:transparent;font-family:var(--sans);font-size:13px;color:var(--text);padding:3px 5px;border-radius:4px}
+.info-item-val-in{flex:1;border:none;background:transparent;font-family:var(--sans);font-size:12px;color:var(--text);padding:2px 4px;border-radius:4px;min-width:0}
 .info-item-val-in:focus{outline:none;background:var(--surface3)}
 .info-item-val-in.password{font-family:var(--mono);letter-spacing:.1em}
-.info-item-del{background:none;border:none;cursor:pointer;color:var(--text3);font-size:14px;padding:2px;line-height:1}
+.info-item-del{background:none;border:none;cursor:pointer;color:var(--text3);font-size:13px;padding:2px;line-height:1;flex-shrink:0}
 .info-item-del:hover{color:var(--red)}
-.info-add-btn{padding:6px 14px;border-radius:20px;border:1px dashed var(--border-md);background:transparent;color:var(--text3);font-size:12px;font-family:var(--sans);cursor:pointer;transition:all .12s;margin-top:8px}
+.info-add-btns{display:flex;flex-wrap:wrap;gap:6px;padding:8px 12px;border-top:1px solid var(--border)}
+.info-add-btn{padding:4px 12px;border-radius:20px;border:1px dashed var(--border-md);background:transparent;color:var(--text3);font-size:11px;font-family:var(--sans);cursor:pointer;transition:all .12s}
 .info-add-btn:hover{border-color:var(--blue);color:var(--blue)}
-.info-show-pass{background:none;border:none;cursor:pointer;color:var(--text3);font-size:12px;padding:2px 5px;border-radius:4px}
+.info-show-pass{background:none;border:none;cursor:pointer;color:var(--text3);font-size:11px;padding:2px 4px;border-radius:4px;flex-shrink:0}
 .info-show-pass:hover{color:var(--blue)}
 </style>
 </head>
@@ -1403,47 +1405,6 @@ let _isEditMode = false;// True if user has edit access
 let _isSyncing = false;
 const _sessionId = Math.random().toString(36).slice(2); // unique per tab, used to ignore own realtime echoes
 
-// ── DEBUG PANEL ──
-function dbg(msg){
-  console.log('[ASN]', msg);
-  const p = document.getElementById('asn-debug-panel');
-  if(!p) return;
-  const line = document.createElement('div');
-  line.textContent = new Date().toLocaleTimeString() + ' ' + msg;
-  p.appendChild(line);
-  p.scrollTop = p.scrollHeight;
-}
-
-async function forceSaveNow(){
-  if(!db){ dbg('forceSave: no db'); return; }
-  dbg('forceSave: loading ALL data from localStorage...');
-  // Use literal key strings since this runs before the const declarations
-  try{ const s=localStorage.getItem('asn_ws_v3'); if(s){const d=JSON.parse(s);if(d&&d.days)state=d;} }catch(e){}
-  try{ const s=localStorage.getItem('asn_q_v2'); if(s)qItems=JSON.parse(s); }catch(e){}
-  try{ const s=localStorage.getItem('asn_rem_v1'); if(s)remItems=JSON.parse(s); }catch(e){}
-  try{ const s=localStorage.getItem('asn_tl_v1'); if(s)tlItems=JSON.parse(s); }catch(e){}
-  try{ const s=localStorage.getItem('asn_cal_v1'); if(s)calEntries=JSON.parse(s); }catch(e){}
-  try{ const s=localStorage.getItem('asn_wr_v1'); if(s)wrEmails=JSON.parse(s); }catch(e){}
-  try{ const s=localStorage.getItem('asn_wrt_v1'); if(s)wrTableOverrides=JSON.parse(s); }catch(e){}
-  try{ const s=localStorage.getItem('asn_rules_v1'); if(s)rulesItems=JSON.parse(s); }catch(e){}
-  try{ const s=localStorage.getItem('asn_sop_v1'); if(s)sopItems=JSON.parse(s); }catch(e){}
-  try{ const s=localStorage.getItem('asn_outsource_v1'); if(s)outsourceGroups=JSON.parse(s); }catch(e){}
-  try{ const s=localStorage.getItem('asn_info_v1'); if(s)infoSections=JSON.parse(s); }catch(e){}
-  dbg('loaded: tracker_days='+state.days.length+' rules='+rulesItems.length+' sop='+sopItems.length+' info='+infoSections.length+' outsource='+outsourceGroups.length+' queue='+qItems.length+' reminders='+remItems.length+' tasks='+tlItems.length);
-  try{
-    const payload = buildPayload();
-    const clean = JSON.parse(JSON.stringify(payload));
-    clean._lastSavedBy = 'FORCE_SAVE';
-    await db.collection('workspaces').doc('ASN_MAIN_WORKSPACE').set({
-      data: clean,
-      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-    });
-    dbg('forceSave SUCCESS! Data is live for all browsers now.');
-    updSaveIndicator('saved','☁ Saved & Live!');
-  }catch(e){
-    dbg('forceSave ERROR: '+e.message);
-  }
-}
 
 // ── WORKSPACE HELPERS ─────────────────────────────────────────────────
 function genId(len=12){
@@ -3235,9 +3196,11 @@ function updRuleBody(id, v) { const r = rulesItems.find(x=>x.id===id); if(r){r.b
 function renderRules() {
   const list = document.getElementById('rules-list'); if (!list) return;
   if (!rulesItems.length) {
-    list.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text3);font-style:italic;font-size:13px">No rules yet. Click "+ Add Rule" to get started.</div>';
+    list.className='';
+    list.innerHTML = '<div style="padding:30px;text-align:center;color:var(--text3);font-style:italic;font-size:13px">No rules yet. Click "+ Add Rule" to get started.</div>';
     return;
   }
+  list.className = 'rules-grid';
   list.innerHTML = '';
   rulesItems.forEach(r => {
     const div = document.createElement('div');
@@ -3361,16 +3324,16 @@ function renderSOP() {
     list.innerHTML='<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--rlg);padding:30px;text-align:center;color:var(--text3);font-style:italic;font-size:13px">No SOPs yet. Click "+ Add New SOP" to get started.</div>';
     return;
   }
+  list.className='sop-list-grid';
   list.innerHTML='';
   sopItems.forEach(s => {
     const card = document.createElement('div');
     card.className = 'sop-card';
     card.innerHTML = `
-      <div class="sop-card-hdr" onclick="togSOPCard(${s.id})">
-        <input class="sop-title-in" value="${esc(s.title)}" placeholder="SOP Title..." onclick="event.stopPropagation()" oninput="updSOPTitle(${s.id},this.value)">
-        <input class="sop-task-in" value="${esc(s.taskRef||'')}" placeholder="Related task..." onclick="event.stopPropagation()" oninput="updSOPTask(${s.id},this.value)">
-        <button class="sop-del-btn" onclick="event.stopPropagation();delSOP(${s.id})">×</button>
-        <span class="sop-chevron" id="sop-chev-${s.id}">▾</span>
+      <div class="sop-card-hdr">
+        <input class="sop-title-in" value="${esc(s.title)}" placeholder="SOP Title..." oninput="updSOPTitle(${s.id},this.value)">
+        <input class="sop-task-in" value="${esc(s.taskRef||'')}" placeholder="Task ref..." oninput="updSOPTask(${s.id},this.value)">
+        <button class="sop-del-btn" onclick="delSOP(${s.id})" title="Delete SOP">×</button>
       </div>
       <div class="sop-card-body" id="sop-body-${s.id}">
         <div id="sop-steps-${s.id}"></div>
@@ -3586,9 +3549,11 @@ function renderInfoSectionItems(sectionId){
 function renderImportantInfo(){
   const container=document.getElementById('info-sections');if(!container)return;
   if(!infoSections.length){
+    container.className='';
     container.innerHTML='<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--rlg);padding:30px;text-align:center;color:var(--text3);font-style:italic;font-size:13px">No info sections yet. Click "+ Add Section" below.</div>';
     return;
   }
+  container.className='info-grid';
   container.innerHTML='';
   infoSections.forEach(s=>{
     const sec=document.createElement('div');
@@ -3603,12 +3568,12 @@ function renderImportantInfo(){
       </div>
       <div class="info-body">
         <div id="info-items-${s.id}"></div>
-        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px">
-          <button class="info-add-btn" onclick="addInfoItem(${s.id},'text')">+ Add Item</button>
-          <button class="info-add-btn" onclick="addInfoItem(${s.id},'password')" style="border-color:rgba(210,153,34,.4);color:var(--amber)">🔑 Password</button>
-          <button class="info-add-btn" onclick="addInfoItem(${s.id},'link')" style="border-color:rgba(88,166,255,.4);color:var(--blue)">🔗 Link</button>
-          <button class="info-add-btn" onclick="addInfoItem(${s.id},'person')" style="border-color:rgba(63,185,80,.4);color:var(--green)">👤 Person</button>
-        </div>
+      </div>
+      <div class="info-add-btns">
+        <button class="info-add-btn" onclick="addInfoItem(${s.id},'text')">+ Text</button>
+        <button class="info-add-btn" onclick="addInfoItem(${s.id},'password')" style="border-color:rgba(210,153,34,.4);color:var(--amber)">🔑 Password</button>
+        <button class="info-add-btn" onclick="addInfoItem(${s.id},'link')" style="border-color:rgba(88,166,255,.4);color:var(--blue)">🔗 Link</button>
+        <button class="info-add-btn" onclick="addInfoItem(${s.id},'person')" style="border-color:rgba(63,185,80,.4);color:var(--green)">👤 Person</button>
       </div>`;
     container.appendChild(sec);
     renderInfoSectionItems(s.id);
@@ -3655,15 +3620,5 @@ function init(){
 // Do NOT call init() here — Firebase calls it at the right time.
 </script>
 
-<!-- DEBUG PANEL — remove after fixing -->
-<div id="asn-debug-panel" style="position:fixed;bottom:60px;right:0;width:380px;max-height:260px;overflow-y:auto;background:rgba(0,0,0,.88);color:#0f0;font-family:monospace;font-size:10px;padding:8px;z-index:9999;border-left:2px solid #0f0;border-top:2px solid #0f0">
-  <div style="color:#ff0;margin-bottom:4px;display:flex;justify-content:space-between;align-items:center">
-    <b>ASN DEBUG</b>
-    <div style="display:flex;gap:6px">
-      <button onclick="forceSaveNow()" style="background:#0f0;border:none;color:#000;cursor:pointer;font-size:11px;font-weight:bold;padding:2px 8px;border-radius:4px">💾 SAVE MY DATA NOW</button>
-      <button onclick="document.getElementById('asn-debug-panel').remove()" style="background:none;border:none;color:#f00;cursor:pointer;font-size:12px">✕</button>
-    </div>
-  </div>
-</div>
 </body>
 </html>
