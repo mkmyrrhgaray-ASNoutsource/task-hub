@@ -5,55 +5,101 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ASN Workspace — All Sport Netting</title>
 <!-- Firebase SDK — loaded dynamically with fallback CDNs -->
-<script>
-(function() {
-  var FIREBASE_VERSION = '9.23.0';
-  var sdkBase_primary  = 'https://www.gstatic.com/firebasejs/' + FIREBASE_VERSION;
-  var sdkBase_fallback = 'https://cdn.jsdelivr.net/npm/firebase@' + FIREBASE_VERSION;
+<!-- Firebase SDK — ES modules, same pattern as working MBS workspace -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getFirestore, doc, setDoc, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+  import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
-  function loadScript(src, onSuccess, onError) {
-    var s = document.createElement('script');
-    s.src = src;
-    s.onload = onSuccess;
-    s.onerror = onError;
-    document.head.appendChild(s);
-  }
+  const firebaseConfig = {
+    apiKey: "AIzaSyBYQGnwHQ2OJx-21ukJ8IQhotKu_97_L8k",
+    authDomain: "asn-workspace-by-mary.firebaseapp.com",
+    projectId: "asn-workspace-by-mary",
+    storageBucket: "asn-workspace-by-mary.firebasestorage.app",
+    messagingSenderId: "763691914927",
+    appId: "1:763691914927:web:371e771a8237fa06e1265a"
+  };
 
-  function loadFirestore(base, onSuccess, onError) {
-    loadScript(base + '/firebase-firestore-compat.js', onSuccess, onError);
-  }
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+  const auth = getAuth(app);
+  const WORKSPACE_ID = "asn-main";
+  const KEYS = ['asn_ws_v3','asn_q_v2','asn_rem_v1','asn_tl_v1','asn_cal_v1','asn_wr_v1','asn_wrt_v1','asn_rules_v1','asn_sop_v1','asn_outsource_v1','asn_info_v1'];
 
-  function loadApp(base, onDone) {
-    loadScript(base + '/firebase-app-compat.js', function() {
-      loadFirestore(base, onDone, function() {
-        onDone(new Error('firestore failed'));
-      });
-    }, function() {
-      onDone(new Error('app failed'));
+  window._fbDb = db;
+  window._fbDoc = () => doc(db, "workspaces", WORKSPACE_ID);
+  window._fbSaveTimer = null;
+  window._fbLoaded = false;
+
+  // Save: read each localStorage key and push to Firestore
+  window._fbSave = function(immediate) {
+    clearTimeout(window._fbSaveTimer);
+    const delay = immediate ? 300 : 2000;
+    window._fbSaveTimer = setTimeout(async () => {
+      try {
+        const payload = { _saved: new Date().toISOString() };
+        KEYS.forEach(k => { const v = localStorage.getItem(k); if(v) payload[k] = v; });
+        await setDoc(window._fbDoc(), payload);
+        window._fbSetStatus('saved');
+      } catch(e) {
+        window._fbSetStatus('error');
+        console.error('[ASN] Save error:', e);
+      }
+    }, delay);
+  };
+
+  window._fbSetStatus = function(status) {
+    const el = document.getElementById('save-status-text');
+    if(!el) return;
+    if(status==='saved') el.textContent='☁ Synced';
+    else if(status==='saving') el.textContent='☁ Saving…';
+    else if(status==='error') el.textContent='☁ Error';
+    else if(status==='loading') el.textContent='☁ Loading…';
+  };
+
+  // Real-time listener — fires when any browser saves
+  window._fbStartListener = function() {
+    onSnapshot(window._fbDoc(), (snap) => {
+      if(!snap.exists()) return;
+      const data = snap.data();
+      // Skip if this is our own save (check timestamp)
+      if(data._saved === window._lastSaved) return;
+      console.log('[ASN] onSnapshot: applying remote data');
+      KEYS.forEach(k => { if(data[k]) localStorage.setItem(k, data[k]); });
+      // Re-render everything
+      if(typeof applyFromLocalStorage === 'function') applyFromLocalStorage();
     });
-  }
+  };
 
-  // Try primary CDN, then fallback, then give up cleanly
-  loadApp(sdkBase_primary, function(err) {
-    if (!err) {
-      window.__firebaseLoaded = true;
-      window.dispatchEvent(new Event('firebase-sdk-ready'));
-    } else {
-      loadApp(sdkBase_fallback, function(err2) {
-        if (!err2) {
-          window.__firebaseLoaded = true;
-          window.dispatchEvent(new Event('firebase-sdk-ready'));
-        } else {
-          // Both CDNs unreachable — mark unavailable and skip all Firebase init
-          window.__firebaseLoaded = false;
-          window.__firebaseUnavailable = true;
-          window.dispatchEvent(new Event('firebase-sdk-ready'));
-        }
-      });
-    }
+  // Auth + initial load
+  onAuthStateChanged(auth, async (user) => {
+    if(!user) { await signInAnonymously(auth); return; }
+    window._fbSetStatus('loading');
+    try {
+      const snap = await getDoc(window._fbDoc());
+      if(snap.exists()) {
+        const data = snap.data();
+        KEYS.forEach(k => { if(data[k]) localStorage.setItem(k, data[k]); });
+        console.log('[ASN] Firebase loaded OK');
+      } else {
+        console.log('[ASN] No data in Firestore yet — will push local data');
+        window._fbSave(true); // push local data up immediately
+      }
+    } catch(e) { console.error('[ASN] Load error:', e); }
+    window._fbLoaded = true;
+    window._fbStartListener();
+    window._fbSetStatus('saved');
+    // Now init the app with fresh data from localStorage (which was just updated from Firebase)
+    if(typeof init === 'function') init();
   });
-})();
+
+  signInAnonymously(auth).catch(e => {
+    console.warn('[ASN] Auth error:', e);
+    window._fbLoaded = true;
+    if(typeof init === 'function') init();
+  });
 </script>
+
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;1,400&family=Mulish:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -1347,11 +1393,8 @@ const HARDCODED_FIREBASE_CONFIG = {
   measurementId: "G-DTX788EMXF"
 };
 
-// ── WORKSPACE ID ──────────────────────────────────────────────────────
-// Stored in URL hash: #ws=XXXXX  — each unique ID = separate workspace
-// Edit token stored separately: #ws=XXXXX&tok=YYYYY → edit access
 const WS_CONFIG_KEY = 'asn_firebase_config_v1';
-const WS_EDIT_TOKENS_KEY = 'asn_edit_tokens_v1'; // {wsId: editToken}
+const WS_EDIT_TOKENS_KEY = 'asn_edit_tokens_v1';
 
 let db = null;          // Firestore instance (null = not configured)
 let _workspaceId = '';  // Current workspace ID
@@ -1359,6 +1402,48 @@ let _isOwner = false;   // True if this browser created this workspace
 let _isEditMode = false;// True if user has edit access
 let _isSyncing = false;
 const _sessionId = Math.random().toString(36).slice(2); // unique per tab, used to ignore own realtime echoes
+
+// ── DEBUG PANEL ──
+function dbg(msg){
+  console.log('[ASN]', msg);
+  const p = document.getElementById('asn-debug-panel');
+  if(!p) return;
+  const line = document.createElement('div');
+  line.textContent = new Date().toLocaleTimeString() + ' ' + msg;
+  p.appendChild(line);
+  p.scrollTop = p.scrollHeight;
+}
+
+async function forceSaveNow(){
+  if(!db){ dbg('forceSave: no db'); return; }
+  dbg('forceSave: loading ALL data from localStorage...');
+  // Use literal key strings since this runs before the const declarations
+  try{ const s=localStorage.getItem('asn_ws_v3'); if(s){const d=JSON.parse(s);if(d&&d.days)state=d;} }catch(e){}
+  try{ const s=localStorage.getItem('asn_q_v2'); if(s)qItems=JSON.parse(s); }catch(e){}
+  try{ const s=localStorage.getItem('asn_rem_v1'); if(s)remItems=JSON.parse(s); }catch(e){}
+  try{ const s=localStorage.getItem('asn_tl_v1'); if(s)tlItems=JSON.parse(s); }catch(e){}
+  try{ const s=localStorage.getItem('asn_cal_v1'); if(s)calEntries=JSON.parse(s); }catch(e){}
+  try{ const s=localStorage.getItem('asn_wr_v1'); if(s)wrEmails=JSON.parse(s); }catch(e){}
+  try{ const s=localStorage.getItem('asn_wrt_v1'); if(s)wrTableOverrides=JSON.parse(s); }catch(e){}
+  try{ const s=localStorage.getItem('asn_rules_v1'); if(s)rulesItems=JSON.parse(s); }catch(e){}
+  try{ const s=localStorage.getItem('asn_sop_v1'); if(s)sopItems=JSON.parse(s); }catch(e){}
+  try{ const s=localStorage.getItem('asn_outsource_v1'); if(s)outsourceGroups=JSON.parse(s); }catch(e){}
+  try{ const s=localStorage.getItem('asn_info_v1'); if(s)infoSections=JSON.parse(s); }catch(e){}
+  dbg('loaded: tracker_days='+state.days.length+' rules='+rulesItems.length+' sop='+sopItems.length+' info='+infoSections.length+' outsource='+outsourceGroups.length+' queue='+qItems.length+' reminders='+remItems.length+' tasks='+tlItems.length);
+  try{
+    const payload = buildPayload();
+    const clean = JSON.parse(JSON.stringify(payload));
+    clean._lastSavedBy = 'FORCE_SAVE';
+    await db.collection('workspaces').doc('ASN_MAIN_WORKSPACE').set({
+      data: clean,
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    dbg('forceSave SUCCESS! Data is live for all browsers now.');
+    updSaveIndicator('saved','☁ Saved & Live!');
+  }catch(e){
+    dbg('forceSave ERROR: '+e.message);
+  }
+}
 
 // ── WORKSPACE HELPERS ─────────────────────────────────────────────────
 function genId(len=12){
@@ -1390,17 +1475,11 @@ function saveEditToken(wsId, tok){
 function getMyEditToken(wsId){return getEditTokens()[wsId]||null;}
 
 function initWorkspaceId(){
-  const hash = getHashParams();
-  if(hash.ws){
-    _workspaceId = hash.ws;
-    window._wsWasInURL = true; // came from shared link — don't overwrite Firebase with local data
-  } else {
-    _workspaceId = genId(12);
-    setHashParam('ws', _workspaceId);
-    window._wsWasInURL = false; // brand new workspace
-  }
+  // HARDCODED — everyone always connects to the same workspace document
+  _workspaceId = 'ASN_MAIN_WORKSPACE';
   _isOwner = true;
   _isEditMode = true;
+  dbg('workspaceId hardcoded: '+_workspaceId);
 }
 
 // ── FIREBASE INIT ─────────────────────────────────────────────────────
@@ -1413,36 +1492,24 @@ function loadFirebaseConfig(){
 }
 
 function initFirebase(config){
-  if(!config) return false;
-  // Don't attempt init if CDN failed to load
-  if(window.__firebaseUnavailable) return false;
-  if(typeof firebase === 'undefined'){
-    return false;
-  }
   try{
-    if(firebase.apps.length===0){
-      firebase.initializeApp(config);
+    if(window.__db){
+      db = window.__db;
+      dbg('initFirebase: reused top-level db OK');
+    } else {
+      dbg('initFirebase: window.__db missing, trying manual init. unavailable='+window.__firebaseUnavailable+' defined='+(typeof firebase!=='undefined'));
+      if(window.__firebaseUnavailable||typeof firebase==='undefined') return false;
+      if(firebase.apps.length===0) firebase.initializeApp(config);
+      db = firebase.firestore();
+      dbg('initFirebase: manual init OK');
     }
-    db = firebase.firestore();
-    // If we know we're offline, disable network immediately to stop retry floods
-    if(!navigator.onLine){
-      db.disableNetwork().catch(()=>{});
-      return false;
-    }
-    // Listen for going offline — disable Firestore network to stop retry storms
-    window.addEventListener('offline', function(){
-      if(db){ db.disableNetwork().catch(()=>{}); }
-      updSaveIndicator('error','Offline');
-    });
-    window.addEventListener('online', function(){
-      if(db){ db.enableNetwork().catch(()=>{}); }
-      updSaveIndicator('','Reconnecting…');
-      triggerSave();
-    });
-    const btn = document.getElementById('cloud-btn');
-    if(btn){btn.textContent='☁ Synced';btn.className='cloud-btn';btn.onclick=()=>openShare();}
+    window.addEventListener('offline',function(){if(db)db.disableNetwork().catch(()=>{});updSaveIndicator('error','Offline');});
+    window.addEventListener('online',function(){if(db)db.enableNetwork().catch(()=>{});triggerSave();});
+    const btn=document.getElementById('cloud-btn');
+    if(btn){btn.textContent='☁ Live';btn.className='cloud-btn';btn.onclick=()=>openShare();}
     return true;
   }catch(e){
+    dbg('initFirebase EXCEPTION: '+e.message);
     return false;
   }
 }
@@ -1630,11 +1697,10 @@ function updSaveIndicator(status, label){
 }
 
 // --- File permission check ---
-async function verifyPermission(h, readWrite, allowPrompt=false){
+async function verifyPermission(h, readWrite){
   const opts = readWrite ? {mode:'readwrite'} : {};
   if((await h.queryPermission(opts))==='granted') return true;
-  // Only call requestPermission when triggered by a real user click (not on page load)
-  if(allowPrompt && (await h.requestPermission(opts))==='granted') return true;
+  if((await h.requestPermission(opts))==='granted') return true;
   return false;
 }
 
@@ -1670,7 +1736,7 @@ async function setupAutoSave(){
 async function silentSave(){
   if(!_fileHandle) return;
   try{
-    const ok = await verifyPermission(_fileHandle, true, true); // user already set this up, prompt allowed
+    const ok = await verifyPermission(_fileHandle, true);
     if(!ok){updSaveIndicator('error','Permission denied');return;}
     updSaveIndicator('saving','Saving…');
     const payload = buildPayload();
@@ -1698,11 +1764,8 @@ function triggerSave(){
   if(_fileHandle){
     _saveTimer = setTimeout(silentSave, 600);
   }
-  // Firebase cloud save (debounced, slightly longer)
-  if(db){
-    if(_cloudSaveTimer) clearTimeout(_cloudSaveTimer);
-    _cloudSaveTimer = setTimeout(()=>firebaseSave(buildPayload()), 1200);
-  }
+  // Firebase cloud save
+  if(window._fbSave) window._fbSave();
 }
 
 // --- Build the full payload object ---
@@ -1754,6 +1817,33 @@ async function loadFromFile(h){
     applyPayload(data);
     return true;
   }catch(e){return false;}
+}
+
+// Called by Firebase module after loading cloud data into localStorage,
+// and by the realtime listener when another browser makes a change.
+function applyFromLocalStorage(){
+  try{ const s=localStorage.getItem('asn_ws_v3'); if(s){const d=JSON.parse(s);if(d&&d.days){d.days.forEach(day=>{if(!day.breakData)day.breakData={elapsed:0,status:'idle',startedAt:null,log:[]};day.tasks.forEach(t=>{if(!t.notes)t.notes='';if(!t.breakData)t.breakData={elapsed:0,status:'idle',startedAt:null,log:[]};});});state=d;}} }catch(e){}
+  try{ const s=localStorage.getItem('asn_q_v2'); if(s)qItems=JSON.parse(s); }catch(e){}
+  try{ const s=localStorage.getItem('asn_rem_v1'); if(s)remItems=JSON.parse(s); }catch(e){}
+  try{ const s=localStorage.getItem('asn_tl_v1'); if(s)tlItems=JSON.parse(s); }catch(e){}
+  try{ const s=localStorage.getItem('asn_cal_v1'); if(s)calEntries=JSON.parse(s); }catch(e){}
+  try{ const s=localStorage.getItem('asn_wr_v1'); if(s)wrEmails=JSON.parse(s); }catch(e){}
+  try{ const s=localStorage.getItem('asn_wrt_v1'); if(s)wrTableOverrides=JSON.parse(s); }catch(e){}
+  try{ const s=localStorage.getItem('asn_rules_v1'); if(s)rulesItems=JSON.parse(s); }catch(e){}
+  try{ const s=localStorage.getItem('asn_sop_v1'); if(s)sopItems=JSON.parse(s); }catch(e){}
+  try{ const s=localStorage.getItem('asn_outsource_v1'); if(s)outsourceGroups=JSON.parse(s); }catch(e){}
+  try{ const s=localStorage.getItem('asn_info_v1'); if(s)infoSections=JSON.parse(s); }catch(e){}
+  // Re-render every tab
+  if(typeof renderTracker==='function') renderTracker();
+  if(typeof renderQ==='function') renderQ();
+  if(typeof renderReminders==='function') renderReminders();
+  if(typeof renderTaskList==='function') renderTaskList();
+  if(typeof renderCalendar==='function') renderCalendar();
+  if(typeof renderRules==='function') renderRules();
+  if(typeof renderSOP==='function') renderSOP();
+  if(typeof renderOutsource==='function') renderOutsource();
+  if(typeof renderImportantInfo==='function') renderImportantInfo();
+  console.log('[ASN] applyFromLocalStorage done. rules='+rulesItems.length+' sop='+sopItems.length+' info='+infoSections.length+' outsource='+outsourceGroups.length);
 }
 
 function applyPayload(data){
@@ -3531,11 +3621,12 @@ function renderImportantInfo(){
 // Do NOT re-assign here — it would overwrite the Firebase data.
 
 // ── INIT ──
-async function init(){
-  // ── 1. Init workspace ID from URL hash ──
+function init(){
+  // Firebase module already loaded data into localStorage before calling this.
+  // Just read localStorage and render everything.
   initWorkspaceId();
 
-  // ── 2. Fix up any in-memory state issues ──
+  // Fix up tracker state
   state.days.forEach(day=>{
     if(!day.breakData)day.breakData={elapsed:0,status:'idle',startedAt:null,log:[]};
     day.tasks.forEach(t=>{
@@ -3549,76 +3640,10 @@ async function init(){
     }
   });
 
-  // ── 3. Load tab data from localStorage (offline fallback — Firebase will overwrite if available) ──
-  rulesItems = loadRulesData();
-  sopItems = loadSOPData();
-  outsourceGroups = loadOutsourceData();
-  infoSections = loadInfoData();
+  // Load all data from localStorage (Firebase already populated it above)
+  applyFromLocalStorage();
 
-  // ── 4. Init Firebase ──
-  const fbConfig = loadFirebaseConfig();
-  if(fbConfig) initFirebase(fbConfig);
-
-  // ── 4. Load from Firebase + start real-time listener ──
-  updSaveIndicator('', 'Loading…');
-  if(db){
-    const cloudData = await firebaseLoad();
-    if(cloudData){
-      applyPayload(cloudData);
-      const t=new Date().toLocaleTimeString('en-PH',{hour:'2-digit',minute:'2-digit'});
-      updSaveIndicator('saved','☁ Synced '+t);
-    } else {
-      // Only push local data up if this workspace ID was just generated (not from URL)
-      // If ws= was in the URL, someone shared it — don't overwrite with empty local data
-      const hashParams = getHashParams();
-      const wsWasInURL = window._wsWasInURL || false;
-      if(!wsWasInURL){
-        // Brand new workspace created by this browser — push local data up
-        updSaveIndicator('','☁ New workspace');
-        triggerSave();
-      } else {
-        // Shared workspace that returned no data — Firebase may still be initializing
-        // Just wait, don't overwrite
-        updSaveIndicator('','☁ Connecting…');
-      }
-    }
-    // Real-time listener: any change from any browser syncs here instantly
-    db.collection('workspaces').doc(_workspaceId).onSnapshot(snap=>{
-      if(!snap.exists) return;
-      const incoming = snap.data()?.data;
-      if(!incoming) return;
-      if(incoming._lastSavedBy === _sessionId) return; // skip our own writes
-      applyPayload(incoming);
-      const t=new Date().toLocaleTimeString('en-PH',{hour:'2-digit',minute:'2-digit'});
-      updSaveIndicator('saved','☁ Live '+t);
-    });
-  } else {
-    // No Firebase — show default indicator
-    updSaveIndicator('', 'No file linked');
-    if(_fsaSupported){
-      try{
-        const h = await idbLoadHandle();
-        if(h){
-          _fileHandle = h;
-          const perm = await h.queryPermission({mode:'readwrite'});
-          if(perm === 'granted'){
-            const loaded = await loadFromFile(h);
-            if(loaded){renderTracker();renderQ();}
-            const fname = h.name || 'ASN_AutoSave.json';
-            updSaveIndicator('saved', '✓ '+fname);
-            document.getElementById('setup-btn').textContent = '✓ File Linked';
-            document.getElementById('setup-btn').className = 'setup-btn linked';
-          } else {
-            updSaveIndicator('', '📄 '+(h.name||'file')+' (click to allow)');
-            document.getElementById('setup-btn').textContent = '🔓 Allow Access';
-            document.getElementById('setup-btn').className = 'setup-btn';
-          }
-        }
-      }catch(e){}
-    }
-  }
-
-  saveS();
+  updSaveIndicator('saved','☁ Synced');
   renderTracker();
   renderQ();
   checkDeadlines();
@@ -3626,23 +3651,19 @@ async function init(){
   checkCalAlerts();
   loadWrEmailFields();
 }
-// Wait for Firebase SDK to finish loading (dynamic loader above fires 'firebase-sdk-ready')
-// then also wait for DOM to be ready before running init()
-function startApp() {
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init);
-  } else {
-    init();
-  }
-}
-
-if (window.__firebaseLoaded !== undefined) {
-  // SDK already finished loading (sync case)
-  startApp();
-} else {
-  // SDK still loading — wait for it
-  window.addEventListener('firebase-sdk-ready', startApp);
-}
+// NOTE: init() is called by the Firebase module above after it loads cloud data.
+// Do NOT call init() here — Firebase calls it at the right time.
 </script>
+
+<!-- DEBUG PANEL — remove after fixing -->
+<div id="asn-debug-panel" style="position:fixed;bottom:60px;right:0;width:380px;max-height:260px;overflow-y:auto;background:rgba(0,0,0,.88);color:#0f0;font-family:monospace;font-size:10px;padding:8px;z-index:9999;border-left:2px solid #0f0;border-top:2px solid #0f0">
+  <div style="color:#ff0;margin-bottom:4px;display:flex;justify-content:space-between;align-items:center">
+    <b>ASN DEBUG</b>
+    <div style="display:flex;gap:6px">
+      <button onclick="forceSaveNow()" style="background:#0f0;border:none;color:#000;cursor:pointer;font-size:11px;font-weight:bold;padding:2px 8px;border-radius:4px">💾 SAVE MY DATA NOW</button>
+      <button onclick="document.getElementById('asn-debug-panel').remove()" style="background:none;border:none;color:#f00;cursor:pointer;font-size:12px">✕</button>
+    </div>
+  </div>
+</div>
 </body>
 </html>
