@@ -1443,6 +1443,7 @@ function initWorkspaceId(){
     const tok = genToken();
     saveEditToken(_workspaceId, tok);
     setHashParam('ws', _workspaceId);
+    setHashParam('tok', tok); // FIX Bug 1: persist tok to URL so owner's address bar always carries edit access
   }
 }
 
@@ -3642,6 +3643,8 @@ async function init(){
         document.getElementById('view-mode-badge')?.classList.remove('show');
         const setupBtn=document.getElementById('setup-btn');
         if(setupBtn)setupBtn.style.display='';
+        // FIX Bug 2: write verified tok back to URL so refresh/bookmark keeps edit access
+        setHashParam('tok', hash.tok);
       }
     }
     const cloudData = await firebaseLoad();
