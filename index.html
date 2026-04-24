@@ -456,8 +456,8 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:14
 .tl-card-badges{display:flex;gap:5px;align-items:center;flex-shrink:0}
 .tl-card-progress{font-family:var(--mono);font-size:10px;color:var(--text3);background:var(--surface3);padding:2px 7px;border-radius:20px;white-space:nowrap}
 .tl-card-progress.done{background:var(--green-bg);color:var(--green)}
-.tl-card-chevron{color:var(--text3);font-size:10px;transition:transform .2s;flex-shrink:0}
-.tl-card-chevron.open{transform:rotate(180deg)}
+.tl-view-btn{background:none;border:1px solid var(--blue);border-radius:20px;padding:3px 12px;font-size:11px;color:var(--blue);cursor:pointer;font-family:var(--sans);flex-shrink:0;white-space:nowrap}
+.tl-view-btn:hover{background:var(--blue-bg)}
 .tl-card-del{background:none;border:none;cursor:pointer;color:var(--text3);font-size:16px;padding:0 2px;border-radius:4px;transition:color .12s;flex-shrink:0;line-height:1}
 .tl-card-del:hover{color:var(--red)}
 .tl-card-body{display:none;border-top:1px solid var(--border)}
@@ -2748,7 +2748,7 @@ function renderTLFiltered(){
           <span class="tl-day-tag ${dc}">${t.day.charAt(0).toUpperCase()+t.day.slice(1)}</span>
           ${progHtml}
         </div>
-        <span class="tl-card-chevron" id="tlchev-${t.id}">▾</span>
+        <button class="tl-view-btn" id="tlchev-${t.id}" onclick="event.stopPropagation();togTLCard(${t.id},this.closest('.tl-card-hdr'))">▼ View Details</button>
         <button class="tl-card-del" onclick="event.stopPropagation();delTL(${t.id})" title="Delete task">×</button>
       </div>
       <div class="tl-card-body" id="tlcb-${t.id}">
@@ -2780,10 +2780,10 @@ function autoResizeTL(el){el.style.height='auto';el.style.height=Math.max(34,el.
 
 function togTLCard(id,hdrEl){
   const body=document.getElementById('tlcb-'+id);
-  const chev=document.getElementById('tlchev-'+id);
+  const btn=document.getElementById('tlchev-'+id);
   if(!body)return;
   const open=body.classList.toggle('open');
-  if(chev)chev.classList.toggle('open',open);
+  if(btn)btn.textContent=open?'▲ Hide Details':'▼ View Details';
 }
 
 function updTLName(id,v){const i=tlItems.find(x=>x.id===id);if(i){i.name=v;saveTL();}}
@@ -3318,15 +3318,24 @@ function renderSOPSteps(sopId) {
     </div>`;
   }).join('');
 }
+function togSOPBody(id){
+  const body=document.getElementById('sop-body-'+id);
+  const btn=document.getElementById('sop-tog-'+id);
+  if(!body)return;
+  const isOpen=body.classList.toggle('open');
+  if(btn)btn.textContent=isOpen?'▲ Hide Steps':'▼ View Steps';
+}
 function renderSOP() {
   const list = document.getElementById('sop-list'); if(!list)return;
   if(!sopItems.length){
+    list.className='';
     list.innerHTML='<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--rlg);padding:30px;text-align:center;color:var(--text3);font-style:italic;font-size:13px">No SOPs yet. Click "+ Add New SOP" to get started.</div>';
     return;
   }
   list.className='sop-list-grid';
   list.innerHTML='';
   sopItems.forEach(s => {
+    const stepCount=(s.steps||[]).length;
     const card = document.createElement('div');
     card.className = 'sop-card';
     card.innerHTML = `
@@ -3334,6 +3343,10 @@ function renderSOP() {
         <input class="sop-title-in" value="${esc(s.title)}" placeholder="SOP Title..." oninput="updSOPTitle(${s.id},this.value)">
         <input class="sop-task-in" value="${esc(s.taskRef||'')}" placeholder="Task ref..." oninput="updSOPTask(${s.id},this.value)">
         <button class="sop-del-btn" onclick="delSOP(${s.id})" title="Delete SOP">×</button>
+      </div>
+      <div style="padding:8px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--surface)">
+        <span style="font-size:11px;color:var(--text3);font-family:var(--mono)">${stepCount} step${stepCount!==1?'s':''}</span>
+        <button id="sop-tog-${s.id}" onclick="togSOPBody(${s.id})" style="background:none;border:1px solid var(--blue);border-radius:20px;padding:3px 12px;font-size:11px;color:var(--blue);cursor:pointer;font-family:var(--sans)">▼ View Steps</button>
       </div>
       <div class="sop-card-body" id="sop-body-${s.id}">
         <div id="sop-steps-${s.id}"></div>
@@ -3546,6 +3559,16 @@ function renderInfoSectionItems(sectionId){
     </div>`;
   }).join('');
 }
+function togInfoBody(id){
+  const body=document.getElementById('info-body-'+id);
+  const btns=document.getElementById('info-addbtn-'+id);
+  const tog=document.getElementById('info-tog-'+id);
+  if(!body)return;
+  const isOpen=body.style.display==='none'||body.style.display==='';
+  body.style.display=isOpen?'block':'none';
+  if(btns)btns.style.display=isOpen?'flex':'none';
+  if(tog)tog.textContent=isOpen?'▲ Hide Items':'▼ View Items';
+}
 function renderImportantInfo(){
   const container=document.getElementById('info-sections');if(!container)return;
   if(!infoSections.length){
@@ -3566,10 +3589,14 @@ function renderImportantInfo(){
         <input class="info-section-title-in" value="${esc(s.title)}" placeholder="Section title..." oninput="updInfoTitle(${s.id},this.value)">
         <button class="info-section-del" onclick="delInfoSection(${s.id})">×</button>
       </div>
-      <div class="info-body">
+      <div style="padding:7px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--surface)">
+        <span style="font-size:11px;color:var(--text3);font-family:var(--mono)">${(s.items||[]).length} item${(s.items||[]).length!==1?'s':''}</span>
+        <button id="info-tog-${s.id}" onclick="togInfoBody(${s.id})" style="background:none;border:1px solid var(--blue);border-radius:20px;padding:3px 12px;font-size:11px;color:var(--blue);cursor:pointer;font-family:var(--sans)">▼ View Items</button>
+      </div>
+      <div class="info-body" id="info-body-${s.id}" style="display:none">
         <div id="info-items-${s.id}"></div>
       </div>
-      <div class="info-add-btns">
+      <div class="info-add-btns" id="info-addbtn-${s.id}" style="display:none">
         <button class="info-add-btn" onclick="addInfoItem(${s.id},'text')">+ Text</button>
         <button class="info-add-btn" onclick="addInfoItem(${s.id},'password')" style="border-color:rgba(210,153,34,.4);color:var(--amber)">🔑 Password</button>
         <button class="info-add-btn" onclick="addInfoItem(${s.id},'link')" style="border-color:rgba(88,166,255,.4);color:var(--blue)">🔗 Link</button>
