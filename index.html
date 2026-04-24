@@ -779,7 +779,7 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:14
 /* ── SOP ── */
 /* ── SOP CARDS ── */
 .sop-list-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px}
-.sop-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--rlg);overflow:hidden;display:flex;flex-direction:column}
+.sop-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--rlg);overflow:hidden}
 .sop-card-hdr{padding:12px 14px;background:var(--surface2);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px}
 .sop-title-in{flex:1;border:none;background:transparent;font-family:var(--serif);font-size:15px;font-weight:600;color:var(--text);padding:2px 4px;border-radius:4px;min-width:0}
 .sop-title-in:focus{outline:none;background:var(--surface3)}
@@ -787,7 +787,8 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:14
 .sop-task-in:focus{outline:none;border-color:var(--blue)}
 .sop-del-btn{background:none;border:none;cursor:pointer;color:var(--text3);font-size:16px;padding:2px 4px;line-height:1;flex-shrink:0}
 .sop-del-btn:hover{color:var(--red)}
-.sop-card-body{padding:12px 14px;flex:1;display:flex;flex-direction:column;gap:8px}
+.sop-card-body{padding:12px 14px;display:none;flex-direction:column;gap:8px}
+.sop-card-body.open{display:flex}
 .sop-step{border:1px solid var(--border);border-radius:var(--r);padding:10px 12px;background:var(--surface2)}
 .sop-step-hdr{display:flex;align-items:center;gap:7px;margin-bottom:6px}
 .sop-step-num{font-family:var(--mono);font-size:10px;font-weight:700;color:var(--blue);background:var(--blue-bg);padding:2px 7px;border-radius:20px;flex-shrink:0}
