@@ -1773,6 +1773,16 @@ function applyPayload(data){
   if(data.sop) sopItems = data.sop;
   if(data.outsource) outsourceGroups = data.outsource;
   if(data.importantInfo) infoSections = data.importantInfo;
+  // Re-render ALL tabs so every page shows the loaded data immediately
+  renderTracker();
+  renderQ();
+  renderReminders();
+  renderTaskList();
+  renderCalendar();
+  renderRules();
+  renderSOP();
+  renderOutsource();
+  renderImportantInfo();
 }
 
 // --- Individual data loaders (localStorage fallback) ---
