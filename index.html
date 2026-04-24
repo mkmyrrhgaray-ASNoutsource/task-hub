@@ -1630,10 +1630,11 @@ function updSaveIndicator(status, label){
 }
 
 // --- File permission check ---
-async function verifyPermission(h, readWrite){
+async function verifyPermission(h, readWrite, allowPrompt=false){
   const opts = readWrite ? {mode:'readwrite'} : {};
   if((await h.queryPermission(opts))==='granted') return true;
-  if((await h.requestPermission(opts))==='granted') return true;
+  // Only call requestPermission when triggered by a real user click (not on page load)
+  if(allowPrompt && (await h.requestPermission(opts))==='granted') return true;
   return false;
 }
 
@@ -1669,7 +1670,7 @@ async function setupAutoSave(){
 async function silentSave(){
   if(!_fileHandle) return;
   try{
-    const ok = await verifyPermission(_fileHandle, true);
+    const ok = await verifyPermission(_fileHandle, true, true); // user already set this up, prompt allowed
     if(!ok){updSaveIndicator('error','Permission denied');return;}
     updSaveIndicator('saving','Saving…');
     const payload = buildPayload();
