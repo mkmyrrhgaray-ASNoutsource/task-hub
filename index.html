@@ -26,31 +26,27 @@
   function loadApp(base, onDone) {
     loadScript(base + '/firebase-app-compat.js', function() {
       loadFirestore(base, onDone, function() {
-        console.warn('Firestore failed from ' + base);
         onDone(new Error('firestore failed'));
       });
     }, function() {
-      console.warn('firebase-app failed from ' + base);
       onDone(new Error('app failed'));
     });
   }
 
-  // Try primary CDN first, then fallback
+  // Try primary CDN, then fallback, then give up cleanly
   loadApp(sdkBase_primary, function(err) {
     if (!err) {
-      console.log('Firebase SDK loaded from primary CDN.');
       window.__firebaseLoaded = true;
       window.dispatchEvent(new Event('firebase-sdk-ready'));
     } else {
-      console.warn('Primary CDN failed, trying fallback CDN...');
       loadApp(sdkBase_fallback, function(err2) {
         if (!err2) {
-          console.log('Firebase SDK loaded from fallback CDN.');
           window.__firebaseLoaded = true;
           window.dispatchEvent(new Event('firebase-sdk-ready'));
         } else {
-          console.warn('Both Firebase CDNs failed. Running in offline mode.');
+          // Both CDNs unreachable — mark unavailable and skip all Firebase init
           window.__firebaseLoaded = false;
+          window.__firebaseUnavailable = true;
           window.dispatchEvent(new Event('firebase-sdk-ready'));
         }
       });
@@ -693,9 +689,152 @@ body.view-mode input:not(.share-link-input):not(.pin-input):not([type=file]):not
 body.view-mode textarea{pointer-events:none!important;opacity:.7}
 body.view-mode select{pointer-events:none!important;opacity:.7}
 body.view-mode button:not(.ntab):not(.hdr-backup-btn):not(.share-btn):not(.cloud-btn):not(.share-copy-btn):not(.break-log-toggle):not(.qi-notes-tog):not(.rem-del):not(.cal-alert-close):not(.dl-dismiss):not(.break-log-toggle):not(.cal-modal-btn):not(.share-close):not(.eod-btn){pointer-events:none!important;opacity:.5}
+
+/* ── CHECKLIST ATTACHMENT ── */
+.tl-cl-item{display:flex;align-items:flex-start;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)}
+.tl-cl-item:last-child{border-bottom:none}
+.tl-cl-content{flex:1;display:flex;flex-direction:column;gap:4px}
+.tl-cl-attach-row{display:flex;align-items:center;gap:6px}
+.tl-cl-attach-btn{cursor:pointer;font-size:13px;padding:2px 7px;border-radius:20px;border:1px dashed var(--border-md);background:var(--surface3);color:var(--text3);transition:all .12s;user-select:none}
+.tl-cl-attach-btn:hover{border-color:var(--blue);color:var(--blue)}
+.tl-cl-attachment{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.tl-cl-img{max-width:100%;width:100%;border-radius:6px;border:1px solid var(--border);cursor:pointer;margin-top:4px;display:block}
+.tl-cl-pdf-badge{display:inline-flex;align-items:center;gap:5px;background:var(--red-bg);color:var(--red);border:1px solid rgba(248,81,73,.25);border-radius:6px;padding:4px 10px;font-size:11px;font-family:var(--mono);cursor:pointer;margin-top:4px}
+.tl-cl-pdf-badge:hover{opacity:.8}
+.tl-cl-attach-del{background:none;border:none;cursor:pointer;color:var(--text3);font-size:14px;padding:0 3px;line-height:1}
+.tl-cl-attach-del:hover{color:var(--red)}
+.tl-cl-del{background:none;border:none;cursor:pointer;color:var(--text4);font-size:13px;padding:0 2px;border-radius:3px;transition:color .12s;line-height:1}
+
+/* ── ATTACHMENT PREVIEW MODAL ── */
+.attach-modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:800;align-items:center;justify-content:center}
+.attach-modal-overlay.open{display:flex}
+.attach-modal{background:var(--surface);border-radius:var(--rlg);overflow:hidden;max-width:90vw;max-height:90vh;display:flex;flex-direction:column}
+.attach-modal-hdr{padding:12px 16px;background:var(--surface2);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.attach-modal-title{font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--text3)}
+.attach-modal-close{background:none;border:none;font-size:20px;cursor:pointer;color:var(--text3);line-height:1}
+.attach-modal-body{padding:16px;overflow:auto;max-height:80vh}
+.attach-modal-body img{max-width:100%;border-radius:6px}
+.attach-modal-body iframe{width:75vw;height:70vh;border:none;border-radius:6px}
+
+/* ── RULES / ESCALATION ── */
+.rule-item{border-bottom:1px solid var(--border);padding:14px 16px}
+.rule-item:last-child{border-bottom:none}
+.rule-item-hdr{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.rule-title-in{flex:1;border:none;background:transparent;font-family:var(--sans);font-size:14px;font-weight:600;color:var(--text);padding:3px 6px;border-radius:4px}
+.rule-title-in:focus{outline:none;background:var(--surface3)}
+.rule-type-sel{padding:3px 8px;border-radius:20px;border:1px solid var(--border);background:var(--surface3);font-family:var(--mono);font-size:10px;font-weight:500;color:var(--text3);cursor:pointer}
+.rule-body-in{width:100%;min-height:70px;padding:8px 10px;border-radius:var(--r);border:1px solid var(--border);background:var(--surface3);font-family:var(--sans);font-size:13px;color:var(--text);resize:vertical;line-height:1.6}
+.rule-body-in:focus{outline:none;border-color:var(--blue)}
+.rule-del-btn{background:none;border:none;cursor:pointer;color:var(--text3);font-size:16px;padding:2px 5px;line-height:1}
+.rule-del-btn:hover{color:var(--red)}
+.rule-type-badge{font-family:var(--mono);font-size:9px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;padding:2px 8px;border-radius:20px}
+.rtype-rule{background:var(--blue-bg);color:var(--blue)}
+.rtype-escalation{background:var(--red-bg);color:var(--red)}
+.rtype-policy{background:var(--green-bg);color:var(--green)}
+.rtype-decision{background:var(--amber-bg);color:var(--amber)}
+
+/* ── SOP ── */
+.sop-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--rlg);overflow:hidden;margin-bottom:1.25rem}
+.sop-card-hdr{padding:12px 16px;background:var(--surface2);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;cursor:pointer}
+.sop-title-in{flex:1;border:none;background:transparent;font-family:var(--serif);font-size:16px;color:var(--text);padding:2px 6px;border-radius:4px}
+.sop-title-in:focus{outline:none;background:var(--surface3)}
+.sop-task-in{padding:3px 8px;border-radius:20px;border:1px solid var(--border);background:var(--surface3);font-family:var(--mono);font-size:10px;color:var(--text3)}
+.sop-task-in:focus{outline:none;border-color:var(--blue)}
+.sop-del-btn{background:none;border:none;cursor:pointer;color:var(--text3);font-size:16px;padding:2px 5px;line-height:1}
+.sop-del-btn:hover{color:var(--red)}
+.sop-card-body{display:none;padding:14px 16px}
+.sop-card-body.open{display:block}
+.sop-step{border:1px solid var(--border);border-radius:var(--r);padding:12px;margin-bottom:10px;background:var(--surface2)}
+.sop-step-hdr{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.sop-step-num{font-family:var(--mono);font-size:10px;font-weight:700;color:var(--blue);background:var(--blue-bg);padding:2px 8px;border-radius:20px;flex-shrink:0}
+.sop-step-title-in{flex:1;border:none;background:transparent;font-family:var(--sans);font-size:13px;font-weight:600;color:var(--text);padding:2px 5px;border-radius:4px}
+.sop-step-title-in:focus{outline:none;background:var(--surface3)}
+.sop-step-del{background:none;border:none;cursor:pointer;color:var(--text3);font-size:15px;padding:2px;line-height:1}
+.sop-step-del:hover{color:var(--red)}
+.sop-step-body-in{width:100%;min-height:60px;padding:7px 10px;border-radius:var(--r);border:1px solid var(--border);background:var(--surface3);font-family:var(--sans);font-size:13px;color:var(--text);resize:vertical;line-height:1.6;margin-bottom:8px}
+.sop-step-body-in:focus{outline:none;border-color:var(--blue)}
+.sop-step-attachments{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px}
+.sop-step-attach-btn{display:inline-flex;align-items:center;gap:5px;padding:4px 12px;border-radius:20px;border:1px dashed var(--border-md);background:var(--surface3);color:var(--text3);font-size:11px;cursor:pointer;transition:all .12s;font-family:var(--sans)}
+.sop-step-attach-btn:hover{border-color:var(--blue);color:var(--blue)}
+.sop-step-img{max-width:200px;max-height:140px;border-radius:6px;border:1px solid var(--border);cursor:pointer;object-fit:cover}
+.sop-step-pdf{display:inline-flex;align-items:center;gap:5px;background:var(--red-bg);color:var(--red);border:1px solid rgba(248,81,73,.25);border-radius:6px;padding:4px 10px;font-size:11px;font-family:var(--mono);cursor:pointer}
+.sop-step-remove-attach{background:none;border:none;cursor:pointer;color:var(--text3);font-size:12px;padding:0 2px;line-height:1}
+.sop-step-remove-attach:hover{color:var(--red)}
+.sop-add-step-btn{padding:7px 16px;border-radius:20px;border:1px dashed var(--border-md);background:transparent;color:var(--text3);font-size:12px;font-family:var(--sans);cursor:pointer;transition:all .12s;margin-top:4px}
+.sop-add-step-btn:hover{border-color:var(--blue);color:var(--blue)}
+.sop-chevron{font-size:12px;color:var(--text3);transition:transform .15s;margin-left:auto}
+.sop-chevron.open{transform:rotate(180deg)}
+
+/* ── OUTSOURCE DAILY CHECKLIST ── */
+.osg-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--rlg);overflow:hidden;margin-bottom:1.25rem}
+.osg-hdr{padding:12px 16px;background:var(--surface2);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;cursor:pointer}
+.osg-name-in{flex:1;border:none;background:transparent;font-family:var(--serif);font-size:16px;color:var(--text);padding:2px 6px;border-radius:4px}
+.osg-name-in:focus{outline:none;background:var(--surface3)}
+.osg-time-in{width:90px;padding:3px 8px;border-radius:20px;border:1px solid var(--border);background:var(--surface3);font-family:var(--mono);font-size:10px;color:var(--text3);text-align:center}
+.osg-time-in:focus{outline:none;border-color:var(--blue)}
+.osg-del-btn{background:none;border:none;cursor:pointer;color:var(--text3);font-size:16px;padding:2px 5px;line-height:1}
+.osg-del-btn:hover{color:var(--red)}
+.osg-body{display:none;padding:12px 16px}
+.osg-body.open{display:block}
+.osg-item{border:1px solid var(--border);border-radius:var(--r);padding:10px;margin-bottom:8px;background:var(--surface2)}
+.osg-item-hdr{display:flex;align-items:flex-start;gap:8px}
+.osg-item-cb{margin-top:3px;flex-shrink:0}
+.osg-item-content{flex:1;display:flex;flex-direction:column;gap:4px}
+.osg-item-text-in{border:none;background:transparent;font-family:var(--sans);font-size:13px;color:var(--text);padding:2px 5px;border-radius:4px;width:100%}
+.osg-item-text-in:focus{outline:none;background:var(--surface3)}
+.osg-item-time-in{width:80px;padding:2px 6px;border-radius:20px;border:1px solid var(--border);background:var(--surface3);font-family:var(--mono);font-size:10px;color:var(--text3);text-align:center}
+.osg-item-time-in:focus{outline:none;border-color:var(--blue)}
+.osg-item-del{background:none;border:none;cursor:pointer;color:var(--text3);font-size:15px;padding:2px;line-height:1}
+.osg-item-del:hover{color:var(--red)}
+.osg-item-attachments{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
+.osg-item-attach-btn{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:20px;border:1px dashed var(--border-md);background:var(--surface3);color:var(--text3);font-size:11px;cursor:pointer;font-family:var(--sans)}
+.osg-item-attach-btn:hover{border-color:var(--blue);color:var(--blue)}
+.osg-item-img{max-width:180px;max-height:120px;border-radius:6px;border:1px solid var(--border);cursor:pointer;object-fit:cover}
+.osg-item-pdf{display:inline-flex;align-items:center;gap:5px;background:var(--red-bg);color:var(--red);border:1px solid rgba(248,81,73,.25);border-radius:6px;padding:3px 8px;font-size:11px;font-family:var(--mono);cursor:pointer}
+.osg-remove-attach{background:none;border:none;cursor:pointer;color:var(--text3);font-size:12px;padding:0 2px;line-height:1}
+.osg-remove-attach:hover{color:var(--red)}
+.osg-add-item-btn{padding:7px 14px;border-radius:20px;border:1px dashed var(--border-md);background:transparent;color:var(--text3);font-size:12px;font-family:var(--sans);cursor:pointer;transition:all .12s;margin-top:4px}
+.osg-add-item-btn:hover{border-color:var(--green);color:var(--green)}
+.osg-chevron{font-size:12px;color:var(--text3);transition:transform .15s;margin-left:auto}
+.osg-chevron.open{transform:rotate(180deg)}
+.osg-total-time{font-family:var(--mono);font-size:10px;color:var(--text3);background:var(--surface3);padding:2px 9px;border-radius:20px}
+
+/* ── IMPORTANT INFO ── */
+.info-section{background:var(--surface);border:1px solid var(--border);border-radius:var(--rlg);overflow:hidden;margin-bottom:1.25rem}
+.info-section-hdr{padding:11px 16px;background:var(--surface2);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+.info-section-title-in{flex:1;border:none;background:transparent;font-family:var(--serif);font-size:16px;color:var(--text);padding:2px 6px;border-radius:4px}
+.info-section-title-in:focus{outline:none;background:var(--surface3)}
+.info-section-icon-sel{padding:3px 7px;border-radius:var(--r);border:1px solid var(--border);background:var(--surface3);font-size:14px;cursor:pointer}
+.info-section-del{background:none;border:none;cursor:pointer;color:var(--text3);font-size:16px;padding:2px 5px;line-height:1}
+.info-section-del:hover{color:var(--red)}
+.info-body{padding:12px 16px}
+.info-item{display:flex;align-items:flex-start;gap:8px;padding:7px 0;border-bottom:1px solid var(--border)}
+.info-item:last-child{border-bottom:none}
+.info-item-label-in{width:130px;border:none;background:transparent;font-family:var(--mono);font-size:11px;font-weight:600;color:var(--text3);padding:3px 5px;border-radius:4px;flex-shrink:0}
+.info-item-label-in:focus{outline:none;background:var(--surface3)}
+.info-item-val-in{flex:1;border:none;background:transparent;font-family:var(--sans);font-size:13px;color:var(--text);padding:3px 5px;border-radius:4px}
+.info-item-val-in:focus{outline:none;background:var(--surface3)}
+.info-item-val-in.password{font-family:var(--mono);letter-spacing:.1em}
+.info-item-del{background:none;border:none;cursor:pointer;color:var(--text3);font-size:14px;padding:2px;line-height:1}
+.info-item-del:hover{color:var(--red)}
+.info-add-btn{padding:6px 14px;border-radius:20px;border:1px dashed var(--border-md);background:transparent;color:var(--text3);font-size:12px;font-family:var(--sans);cursor:pointer;transition:all .12s;margin-top:8px}
+.info-add-btn:hover{border-color:var(--blue);color:var(--blue)}
+.info-show-pass{background:none;border:none;cursor:pointer;color:var(--text3);font-size:12px;padding:2px 5px;border-radius:4px}
+.info-show-pass:hover{color:var(--blue)}
 </style>
 </head>
 <body>
+
+<!-- Attachment Preview Modal -->
+<div class="attach-modal-overlay" id="attach-modal-overlay" onclick="if(event.target===this)closeAttachPreview()">
+  <div class="attach-modal">
+    <div class="attach-modal-hdr">
+      <span class="attach-modal-title" id="attach-modal-title">Preview</span>
+      <button class="attach-modal-close" onclick="closeAttachPreview()">×</button>
+    </div>
+    <div class="attach-modal-body" id="attach-modal-body"></div>
+  </div>
+</div>
 
 <!-- Share Modal -->
 <div class="share-overlay" id="share-overlay">
@@ -882,8 +1021,12 @@ body.view-mode button:not(.ntab):not(.hdr-backup-btn):not(.share-btn):not(.cloud
   <button class="ntab" onclick="goTab('queue',this)">🗂 ASN Queue <span class="badge" id="q-badge" style="display:none">0</span></button>
   <button class="ntab" onclick="goTab('eod',this);buildEOD()">📤 EOD Report</button>
   <button class="ntab" onclick="goTab('tasklist',this);renderTaskList()">📑 Task List</button>
-  <button class="ntab" onclick="goTab('reminders',this)">📝 Reminders</button>
+  <button class="ntab" onclick="goTab('reminders',this);renderReminders()">📧 Email Templates</button>
   <button class="ntab" onclick="goTab('calendar',this);renderCalendar()">📅 Calendar</button>
+  <button class="ntab" onclick="goTab('rules',this);renderRules()">⚙️ Rules/Escalation</button>
+  <button class="ntab" onclick="goTab('sop',this);renderSOP()">📖 SOP</button>
+  <button class="ntab" onclick="goTab('outsource',this);renderOutsource()">✅ Outsource Daily</button>
+  <button class="ntab" onclick="goTab('importantinfo',this);renderImportantInfo()">🔑 Important Info</button>
 </nav>
 
 <div class="body">
@@ -1154,6 +1297,47 @@ body.view-mode button:not(.ntab):not(.hdr-backup-btn):not(.share-btn):not(.cloud
     </div>
   </div>
 
+  <!-- ══════════════ RULES / ESCALATION ══════════════ -->
+  <div id="tab-rules" class="page">
+    <div class="sec-title">Rules / Escalation</div>
+    <div class="sec-sub">Define rules, escalation paths, and decision criteria. Fully editable.</div>
+    <div class="card">
+      <div class="card-head" style="justify-content:space-between">
+        <span class="cht">Rules &amp; Escalation Policies</span>
+        <button class="tl-add-btn" onclick="addRule()">+ Add Rule</button>
+      </div>
+      <div id="rules-list"></div>
+    </div>
+  </div>
+
+  <!-- ══════════════ SOP ══════════════ -->
+  <div id="tab-sop" class="page">
+    <div class="sec-title">Standard Operating Procedures</div>
+    <div class="sec-sub">Step-by-step SOPs for each task. Add photos or PDFs per step.</div>
+    <div style="margin-bottom:1rem">
+      <button class="tl-add-btn" style="font-size:13px;padding:9px 18px" onclick="addSOP()">+ Add New SOP</button>
+    </div>
+    <div id="sop-list"></div>
+  </div>
+
+  <!-- ══════════════ OUTSOURCE DAILY CHECKLIST ══════════════ -->
+  <div id="tab-outsource" class="page">
+    <div class="sec-title">Outsource Daily Checklist</div>
+    <div class="sec-sub">Grouped checklists with time estimates for outsourced tasks. Add photos or PDFs per item.</div>
+    <div style="margin-bottom:1rem;display:flex;gap:8px;flex-wrap:wrap">
+      <button class="tl-add-btn" style="font-size:13px;padding:9px 18px" onclick="addOutsourceGroup()">+ Add Group</button>
+    </div>
+    <div id="outsource-list"></div>
+  </div>
+
+  <!-- ══════════════ IMPORTANT INFO ══════════════ -->
+  <div id="tab-importantinfo" class="page">
+    <div class="sec-title">Important Info</div>
+    <div class="sec-sub">Tools, people, links, passwords and other critical information.</div>
+    <div id="info-sections"></div>
+    <button class="tl-add-btn" style="font-size:13px;padding:9px 18px;margin-top:8px" onclick="addInfoSection()">+ Add Section</button>
+  </div>
+
 </div><!-- /body -->
 
 <!-- Bottom Fixed Navigation -->
@@ -1163,8 +1347,12 @@ body.view-mode button:not(.ntab):not(.hdr-backup-btn):not(.share-btn):not(.cloud
   <button class="ntab" onclick="goTab('queue',this);syncBottomNav(this)">🗂 Queue</button>
   <button class="ntab" onclick="goTab('eod',this);buildEOD();syncBottomNav(this)">📤 EOD</button>
   <button class="ntab" onclick="goTab('tasklist',this);renderTaskList();syncBottomNav(this)">📑 Tasks</button>
-  <button class="ntab" onclick="goTab('reminders',this);syncBottomNav(this)">📝 Notes</button>
+  <button class="ntab" onclick="goTab('reminders',this);renderReminders();syncBottomNav(this)">📧 Email</button>
   <button class="ntab" onclick="goTab('calendar',this);renderCalendar();syncBottomNav(this)">📅 Cal</button>
+  <button class="ntab" onclick="goTab('rules',this);renderRules();syncBottomNav(this)">⚙️ Rules</button>
+  <button class="ntab" onclick="goTab('sop',this);renderSOP();syncBottomNav(this)">📖 SOP</button>
+  <button class="ntab" onclick="goTab('outsource',this);renderOutsource();syncBottomNav(this)">✅ Outsrc</button>
+  <button class="ntab" onclick="goTab('importantinfo',this);renderImportantInfo();syncBottomNav(this)">🔑 Info</button>
 </nav>
 
 <script>
@@ -1260,6 +1448,8 @@ function initWorkspaceId(){
 
 // ── FIREBASE INIT ─────────────────────────────────────────────────────
 function loadFirebaseConfig(){
+  // Don't use config if Firebase SDK couldn't be loaded at all
+  if(window.__firebaseUnavailable) return null;
   if(HARDCODED_FIREBASE_CONFIG) return HARDCODED_FIREBASE_CONFIG;
   try{const s=localStorage.getItem(WS_CONFIG_KEY);if(s)return JSON.parse(s);}catch(e){}
   return null;
@@ -1267,8 +1457,9 @@ function loadFirebaseConfig(){
 
 function initFirebase(config){
   if(!config) return false;
+  // Don't attempt init if CDN failed to load
+  if(window.__firebaseUnavailable) return false;
   if(typeof firebase === 'undefined'){
-    console.warn('Firebase SDK not loaded — skipping init.');
     return false;
   }
   try{
@@ -1276,11 +1467,25 @@ function initFirebase(config){
       firebase.initializeApp(config);
     }
     db = firebase.firestore();
+    // If we know we're offline, disable network immediately to stop retry floods
+    if(!navigator.onLine){
+      db.disableNetwork().catch(()=>{});
+      return false;
+    }
+    // Listen for going offline — disable Firestore network to stop retry storms
+    window.addEventListener('offline', function(){
+      if(db){ db.disableNetwork().catch(()=>{}); }
+      updSaveIndicator('error','Offline');
+    });
+    window.addEventListener('online', function(){
+      if(db){ db.enableNetwork().catch(()=>{}); }
+      updSaveIndicator('','Reconnecting…');
+      triggerSave();
+    });
     const btn = document.getElementById('cloud-btn');
     if(btn){btn.textContent='☁ Synced';btn.className='cloud-btn';btn.onclick=()=>openShare();}
     return true;
   }catch(e){
-    console.warn('Firebase init failed:',e);
     return false;
   }
 }
@@ -1295,6 +1500,7 @@ function stripPDFs(data){
 
 async function firebaseSave(payload){
   if(!db||!_workspaceId||!_isEditMode||_isSyncing) return;
+  if(!navigator.onLine) return; // skip silently when offline
   _isSyncing=true;
   try{
     const cloudData = stripPDFs(payload);
@@ -1306,19 +1512,25 @@ async function firebaseSave(payload){
     const t=new Date().toLocaleTimeString('en-PH',{hour:'2-digit',minute:'2-digit'});
     updSaveIndicator('saved','☁ Saved '+t);
   }catch(e){
-    updSaveIndicator('error','☁ Save failed');
-    console.warn('Firebase save error:',e);
+    // Only show error for non-connectivity failures
+    if(e.code !== 'unavailable' && e.code !== 'failed-precondition'){
+      updSaveIndicator('error','☁ Save failed');
+    }
   }finally{_isSyncing=false;}
 }
 
 async function firebaseLoad(){
   if(!db||!_workspaceId) return null;
+  if(!navigator.onLine) return null; // skip silently when offline
   try{
     const doc = await db.collection('workspaces').doc(_workspaceId).get();
     if(doc.exists) return doc.data().data||null;
     return null;
   }catch(e){
-    console.warn('Firebase load error:',e);
+    // Suppress expected offline/connectivity errors
+    if(e.code !== 'unavailable' && e.code !== 'failed-precondition'){
+      console.warn('Firebase load error:',e);
+    }
     return null;
   }
 }
@@ -1577,7 +1789,11 @@ function buildPayload(){
     taskList: tlItems,
     calendar: calEntries,
     wrEmails: wrEmails,
-    wrTableOverrides: wrTableOverrides
+    wrTableOverrides: wrTableOverrides,
+    rules: rulesItems,
+    sop: sopItems,
+    outsource: outsourceGroups,
+    importantInfo: infoSections
   };
 }
 
@@ -1591,6 +1807,10 @@ function mirrorToLS(payload){
     localStorage.setItem(CAL_K, JSON.stringify(payload.calendar||{}));
     localStorage.setItem(WR_K, JSON.stringify(payload.wrEmails||{}));
     localStorage.setItem(WRT_K, JSON.stringify(payload.wrTableOverrides||{}));
+    localStorage.setItem(RULES_K, JSON.stringify(payload.rules||[]));
+    localStorage.setItem(SOP_K, JSON.stringify(payload.sop||[]));
+    localStorage.setItem(OSG_K, JSON.stringify(payload.outsource||[]));
+    localStorage.setItem(INFO_K, JSON.stringify(payload.importantInfo||[]));
   }catch(e){}
 }
 
@@ -1623,6 +1843,10 @@ function applyPayload(data){
   if(data.calendar) calEntries = data.calendar;
   if(data.wrEmails) wrEmails = data.wrEmails;
   if(data.wrTableOverrides) wrTableOverrides = data.wrTableOverrides;
+  if(data.rules) rulesItems = data.rules;
+  if(data.sop) sopItems = data.sop;
+  if(data.outsource) outsourceGroups = data.outsource;
+  if(data.importantInfo) infoSections = data.importantInfo;
 }
 
 // --- Individual data loaders (localStorage fallback) ---
@@ -1686,6 +1910,10 @@ function goTab(id,btn){
   if(id==='calendar')renderCalendar();
   if(id==='weekly')renderWeeklyReport();
   if(id==='eod')buildEOD();
+  if(id==='rules')renderRules();
+  if(id==='sop')renderSOP();
+  if(id==='outsource')renderOutsource();
+  if(id==='importantinfo')renderImportantInfo();
 }
 
 function syncBottomNav(btn){
@@ -2510,7 +2738,16 @@ function renderTLFiltered(){
     const clHtml=t.checklist.map((ci,cIdx)=>`
       <div class="tl-cl-item" id="tlci-${t.id}-${cIdx}">
         <input type="checkbox" class="tl-cl-cb" ${ci.checked?'checked':''} onchange="togTLCL(${t.id},${cIdx},this.checked)">
-        <input type="text" class="tl-cl-text${ci.checked?' checked':''}" value="${esc(ci.text)}" placeholder="Step..." oninput="updTLCLText(${t.id},${cIdx},this.value)" onkeydown="if(event.key==='Enter'){event.preventDefault();focusTLCLNew(${t.id});}">
+        <div class="tl-cl-content">
+          <input type="text" class="tl-cl-text${ci.checked?' checked':''}" value="${esc(ci.text)}" placeholder="Step..." oninput="updTLCLText(${t.id},${cIdx},this.value)" onkeydown="if(event.key==='Enter'){event.preventDefault();focusTLCLNew(${t.id});}">
+          ${ci.attachment?`<div class="tl-cl-attachment">${ci.attachType==='image'?`<img src="${ci.attachment}" class="tl-cl-img" onclick="openAttachPreview('${t.id}',${cIdx})">`:ci.attachType==='pdf'?`<div class="tl-cl-pdf-badge" onclick="openAttachPreview('${t.id}',${cIdx})">📄 ${esc(ci.attachName||'PDF')}</div>`:''}<button class="tl-cl-attach-del" onclick="delTLCLAttach(${t.id},${cIdx})" title="Remove attachment">×</button></div>`:''}
+          <div class="tl-cl-attach-row">
+            <label class="tl-cl-attach-btn" title="Add photo or PDF">
+              📎
+              <input type="file" accept="image/*,.pdf" style="display:none" onchange="addTLCLAttach(${t.id},${cIdx},this)">
+            </label>
+          </div>
+        </div>
         <button class="tl-cl-del" onclick="delTLCL(${t.id},${cIdx})" title="Remove step">×</button>
       </div>`).join('');
 
@@ -2616,7 +2853,16 @@ function renderTLCardChecklist(id){
     container.innerHTML=t.checklist.map((ci,cIdx)=>`
       <div class="tl-cl-item" id="tlci-${id}-${cIdx}">
         <input type="checkbox" class="tl-cl-cb" ${ci.checked?'checked':''} onchange="togTLCL(${id},${cIdx},this.checked)">
-        <input type="text" class="tl-cl-text${ci.checked?' checked':''}" value="${esc(ci.text)}" placeholder="Step..." oninput="updTLCLText(${id},${cIdx},this.value)" onkeydown="if(event.key==='Enter'){event.preventDefault();focusTLCLNew(${id});}">
+        <div class="tl-cl-content">
+          <input type="text" class="tl-cl-text${ci.checked?' checked':''}" value="${esc(ci.text)}" placeholder="Step..." oninput="updTLCLText(${id},${cIdx},this.value)" onkeydown="if(event.key==='Enter'){event.preventDefault();focusTLCLNew(${id});}">
+          ${ci.attachment?`<div class="tl-cl-attachment">${ci.attachType==='image'?`<img src="${ci.attachment}" class="tl-cl-img" onclick="openAttachPreview('${id}',${cIdx})">`:ci.attachType==='pdf'?`<div class="tl-cl-pdf-badge" onclick="openAttachPreview('${id}',${cIdx})">📄 ${esc(ci.attachName||'PDF')}</div>`:''}<button class="tl-cl-attach-del" onclick="delTLCLAttach(${id},${cIdx})" title="Remove attachment">×</button></div>`:''}
+          <div class="tl-cl-attach-row">
+            <label class="tl-cl-attach-btn" title="Add photo or PDF">
+              📎
+              <input type="file" accept="image/*,.pdf" style="display:none" onchange="addTLCLAttach(${id},${cIdx},this)">
+            </label>
+          </div>
+        </div>
         <button class="tl-cl-del" onclick="delTLCL(${id},${cIdx})" title="Remove step">×</button>
       </div>`).join('');
   }
@@ -2849,7 +3095,11 @@ function exportData(){
     taskList: tlItems,
     calendar: calEntries,
     wrEmails: wrEmails,
-    wrTableOverrides: wrTableOverrides
+    wrTableOverrides: wrTableOverrides,
+    rules: rulesItems,
+    sop: sopItems,
+    outsource: outsourceGroups,
+    importantInfo: infoSections
   };
   const blob=new Blob([JSON.stringify(backup,null,2)],{type:'application/json'});
   const a=document.createElement('a');
@@ -2879,6 +3129,470 @@ function importData(input){
   reader.readAsText(file);
   input.value='';
 }
+
+// ── CHECKLIST ATTACHMENT FUNCTIONS ──
+function addTLCLAttach(taskId, cIdx, input) {
+  const file = input.files[0]; if (!file) return;
+  const t = tlItems.find(x => x.id === taskId); if (!t || !t.checklist) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const ci = t.checklist[cIdx]; if (!ci) return;
+    ci.attachment = e.target.result;
+    ci.attachType = file.type.startsWith('image/') ? 'image' : 'pdf';
+    ci.attachName = file.name;
+    saveTL(); renderTLCardChecklist(taskId);
+  };
+  reader.readAsDataURL(file);
+  input.value = '';
+}
+function delTLCLAttach(taskId, cIdx) {
+  const t = tlItems.find(x => x.id === taskId); if (!t || !t.checklist) return;
+  const ci = t.checklist[cIdx]; if (!ci) return;
+  delete ci.attachment; delete ci.attachType; delete ci.attachName;
+  saveTL(); renderTLCardChecklist(taskId);
+}
+let _attachPreviewData = null;
+function openAttachPreview(taskId, cIdx, attachData, attachType, attachName) {
+  // Support both call styles
+  let data = attachData, type = attachType, name = attachName;
+  if (!data) {
+    const t = tlItems.find(x => x.id == taskId);
+    if (t && t.checklist && t.checklist[cIdx]) {
+      data = t.checklist[cIdx].attachment;
+      type = t.checklist[cIdx].attachType;
+      name = t.checklist[cIdx].attachName;
+    }
+  }
+  if (!data) return;
+  const overlay = document.getElementById('attach-modal-overlay');
+  const body = document.getElementById('attach-modal-body');
+  const title = document.getElementById('attach-modal-title');
+  if (!overlay) return;
+  title.textContent = name || (type === 'image' ? 'Image' : 'PDF');
+  if (type === 'image') {
+    body.innerHTML = `<img src="${data}" style="max-width:100%;border-radius:6px">`;
+  } else {
+    body.innerHTML = `<iframe src="${data}" style="width:75vw;height:70vh;border:none;border-radius:6px"></iframe>`;
+  }
+  overlay.classList.add('open');
+}
+function closeAttachPreview() {
+  document.getElementById('attach-modal-overlay')?.classList.remove('open');
+  document.getElementById('attach-modal-body').innerHTML = '';
+}
+
+// ── RULES / ESCALATION ──
+let rulesItems = [];
+const RULES_K = 'asn_rules_v1';
+function loadRulesData(){try{const s=localStorage.getItem(RULES_K);if(s)return JSON.parse(s);}catch(e){}return[];}
+function saveRulesData(){localStorage.setItem(RULES_K,JSON.stringify(rulesItems));triggerSave();}
+
+function addRule() {
+  rulesItems.push({id: Date.now(), title: 'New Rule', type: 'rule', body: ''});
+  saveRulesData(); renderRules();
+  // focus last title
+  setTimeout(() => {
+    const ins = document.querySelectorAll('.rule-title-in');
+    if (ins.length) ins[ins.length-1].focus();
+  }, 50);
+}
+function delRule(id) {
+  if (!confirm('Delete this rule?')) return;
+  rulesItems = rulesItems.filter(x => x.id !== id);
+  saveRulesData(); renderRules();
+}
+function updRuleTitle(id, v) { const r = rulesItems.find(x=>x.id===id); if(r){r.title=v;saveRulesData();} }
+function updRuleType(id, v) { const r = rulesItems.find(x=>x.id===id); if(r){r.type=v;saveRulesData();renderRules();} }
+function updRuleBody(id, v) { const r = rulesItems.find(x=>x.id===id); if(r){r.body=v;saveRulesData();} }
+
+function renderRules() {
+  const list = document.getElementById('rules-list'); if (!list) return;
+  if (!rulesItems.length) {
+    list.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text3);font-style:italic;font-size:13px">No rules yet. Click "+ Add Rule" to get started.</div>';
+    return;
+  }
+  list.innerHTML = '';
+  rulesItems.forEach(r => {
+    const div = document.createElement('div');
+    div.className = 'rule-item';
+    const typeColors = {rule:'rtype-rule',escalation:'rtype-escalation',policy:'rtype-policy',decision:'rtype-decision'};
+    div.innerHTML = `
+      <div class="rule-item-hdr">
+        <span class="rule-type-badge ${typeColors[r.type]||'rtype-rule'}">${r.type}</span>
+        <input class="rule-title-in" value="${esc(r.title)}" placeholder="Rule title..." oninput="updRuleTitle(${r.id},this.value)">
+        <select class="rule-type-sel" onchange="updRuleType(${r.id},this.value)">
+          <option value="rule" ${r.type==='rule'?'selected':''}>Rule</option>
+          <option value="escalation" ${r.type==='escalation'?'selected':''}>Escalation</option>
+          <option value="policy" ${r.type==='policy'?'selected':''}>Policy</option>
+          <option value="decision" ${r.type==='decision'?'selected':''}>Decision</option>
+        </select>
+        <button class="rule-del-btn" onclick="delRule(${r.id})">×</button>
+      </div>
+      <textarea class="rule-body-in" placeholder="Describe the rule, escalation path, or policy..." oninput="updRuleBody(${r.id},this.value)">${esc(r.body)}</textarea>
+    `;
+    list.appendChild(div);
+  });
+}
+
+// ── SOP ──
+let sopItems = [];
+const SOP_K = 'asn_sop_v1';
+function loadSOPData(){try{const s=localStorage.getItem(SOP_K);if(s)return JSON.parse(s);}catch(e){}return[];}
+function saveSOPData(){localStorage.setItem(SOP_K,JSON.stringify(sopItems));triggerSave();}
+
+function addSOP() {
+  sopItems.push({id: Date.now(), title: 'New SOP', taskRef: '', steps: []});
+  saveSOPData(); renderSOP();
+  setTimeout(() => {
+    const ins = document.querySelectorAll('.sop-title-in');
+    if (ins.length) ins[ins.length-1].focus();
+  }, 50);
+}
+function delSOP(id) {
+  if (!confirm('Delete this SOP?')) return;
+  sopItems = sopItems.filter(x => x.id !== id);
+  saveSOPData(); renderSOP();
+}
+function updSOPTitle(id, v) { const s = sopItems.find(x=>x.id===id); if(s){s.title=v;saveSOPData();} }
+function updSOPTask(id, v) { const s = sopItems.find(x=>x.id===id); if(s){s.taskRef=v;saveSOPData();} }
+function togSOPCard(id) {
+  const body = document.getElementById('sop-body-'+id);
+  const chev = document.getElementById('sop-chev-'+id);
+  if (body) { body.classList.toggle('open'); chev?.classList.toggle('open'); }
+}
+function addSOPStep(id) {
+  const s = sopItems.find(x=>x.id===id); if(!s)return;
+  if(!s.steps)s.steps=[];
+  s.steps.push({id: Date.now(), title: 'Step '+(s.steps.length+1), body: '', attachments: []});
+  saveSOPData(); renderSOPSteps(id);
+  setTimeout(()=>{
+    const ins = document.querySelectorAll(`#sop-steps-${id} .sop-step-title-in`);
+    if(ins.length)ins[ins.length-1].focus();
+  },50);
+}
+function delSOPStep(sopId, stepId) {
+  const s = sopItems.find(x=>x.id===sopId); if(!s)return;
+  s.steps = s.steps.filter(x=>x.id!==stepId);
+  saveSOPData(); renderSOPSteps(sopId);
+}
+function updSOPStepTitle(sopId, stepId, v) {
+  const s = sopItems.find(x=>x.id===sopId); if(!s)return;
+  const step = s.steps.find(x=>x.id===stepId); if(step){step.title=v;saveSOPData();}
+}
+function updSOPStepBody(sopId, stepId, v) {
+  const s = sopItems.find(x=>x.id===sopId); if(!s)return;
+  const step = s.steps.find(x=>x.id===stepId); if(step){step.body=v;saveSOPData();}
+}
+function addSOPStepAttach(sopId, stepId, input) {
+  const file = input.files[0]; if(!file)return;
+  const s = sopItems.find(x=>x.id===sopId); if(!s)return;
+  const step = s.steps.find(x=>x.id===stepId); if(!step)return;
+  if(!step.attachments)step.attachments=[];
+  const reader = new FileReader();
+  reader.onload = e => {
+    step.attachments.push({id:Date.now(), data:e.target.result, type:file.type.startsWith('image/')?'image':'pdf', name:file.name});
+    saveSOPData(); renderSOPSteps(sopId);
+  };
+  reader.readAsDataURL(file);
+  input.value='';
+}
+function delSOPStepAttach(sopId, stepId, attachId) {
+  const s = sopItems.find(x=>x.id===sopId); if(!s)return;
+  const step = s.steps.find(x=>x.id===stepId); if(!step)return;
+  step.attachments = step.attachments.filter(a=>a.id!==attachId);
+  saveSOPData(); renderSOPSteps(sopId);
+}
+function renderSOPSteps(sopId) {
+  const s = sopItems.find(x=>x.id===sopId); if(!s)return;
+  const container = document.getElementById('sop-steps-'+sopId); if(!container)return;
+  if(!s.steps||!s.steps.length) {
+    container.innerHTML='<div style="color:var(--text3);font-size:12px;font-style:italic;padding:8px 0">No steps yet. Click "+ Add Step" to get started.</div>';
+    return;
+  }
+  container.innerHTML = s.steps.map((step, i) => {
+    const attachHtml = (step.attachments||[]).map(a => `
+      <div style="display:inline-flex;align-items:center;gap:4px">
+        ${a.type==='image'?`<img src="${a.data}" class="sop-step-img" onclick="openAttachPreview(null,null,'${a.data}','image','${esc(a.name)}')" title="${esc(a.name)}">`:
+        `<div class="sop-step-pdf" onclick="openAttachPreview(null,null,'${a.data}','pdf','${esc(a.name)}')" title="${esc(a.name)}">📄 ${esc(a.name)}</div>`}
+        <button class="sop-step-remove-attach" onclick="delSOPStepAttach(${sopId},${step.id},${a.id})" title="Remove">×</button>
+      </div>`).join('');
+    return `<div class="sop-step">
+      <div class="sop-step-hdr">
+        <span class="sop-step-num">Step ${i+1}</span>
+        <input class="sop-step-title-in" value="${esc(step.title)}" placeholder="Step title..." oninput="updSOPStepTitle(${sopId},${step.id},this.value)">
+        <button class="sop-step-del" onclick="delSOPStep(${sopId},${step.id})">×</button>
+      </div>
+      <textarea class="sop-step-body-in" placeholder="Describe this step in detail..." oninput="updSOPStepBody(${sopId},${step.id},this.value)">${esc(step.body)}</textarea>
+      <div class="sop-step-attachments">${attachHtml}</div>
+      <label class="sop-step-attach-btn">📎 Add Photo/PDF<input type="file" accept="image/*,.pdf" style="display:none" onchange="addSOPStepAttach(${sopId},${step.id},this)"></label>
+    </div>`;
+  }).join('');
+}
+function renderSOP() {
+  const list = document.getElementById('sop-list'); if(!list)return;
+  if(!sopItems.length){
+    list.innerHTML='<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--rlg);padding:30px;text-align:center;color:var(--text3);font-style:italic;font-size:13px">No SOPs yet. Click "+ Add New SOP" to get started.</div>';
+    return;
+  }
+  list.innerHTML='';
+  sopItems.forEach(s => {
+    const card = document.createElement('div');
+    card.className = 'sop-card';
+    card.innerHTML = `
+      <div class="sop-card-hdr" onclick="togSOPCard(${s.id})">
+        <input class="sop-title-in" value="${esc(s.title)}" placeholder="SOP Title..." onclick="event.stopPropagation()" oninput="updSOPTitle(${s.id},this.value)">
+        <input class="sop-task-in" value="${esc(s.taskRef||'')}" placeholder="Related task..." onclick="event.stopPropagation()" oninput="updSOPTask(${s.id},this.value)">
+        <button class="sop-del-btn" onclick="event.stopPropagation();delSOP(${s.id})">×</button>
+        <span class="sop-chevron" id="sop-chev-${s.id}">▾</span>
+      </div>
+      <div class="sop-card-body" id="sop-body-${s.id}">
+        <div id="sop-steps-${s.id}"></div>
+        <button class="sop-add-step-btn" onclick="addSOPStep(${s.id})">+ Add Step</button>
+      </div>`;
+    list.appendChild(card);
+    renderSOPSteps(s.id);
+  });
+}
+
+// ── OUTSOURCE DAILY CHECKLIST ──
+let outsourceGroups = [];
+const OSG_K = 'asn_outsource_v1';
+function loadOutsourceData(){try{const s=localStorage.getItem(OSG_K);if(s)return JSON.parse(s);}catch(e){}return[];}
+function saveOutsourceData(){localStorage.setItem(OSG_K,JSON.stringify(outsourceGroups));triggerSave();}
+
+function addOutsourceGroup() {
+  outsourceGroups.push({id: Date.now(), name: 'New Group', totalMins: '', items: []});
+  saveOutsourceData(); renderOutsource();
+  setTimeout(()=>{
+    const ins = document.querySelectorAll('.osg-name-in');
+    if(ins.length)ins[ins.length-1].focus();
+  },50);
+}
+function delOutsourceGroup(id) {
+  if (!confirm('Delete this group?')) return;
+  outsourceGroups = outsourceGroups.filter(x=>x.id!==id);
+  saveOutsourceData(); renderOutsource();
+}
+function updOSGName(id, v) { const g=outsourceGroups.find(x=>x.id===id); if(g){g.name=v;saveOutsourceData();} }
+function updOSGTime(id, v) { const g=outsourceGroups.find(x=>x.id===id); if(g){g.totalMins=v;saveOutsourceData();} }
+function togOSG(id) {
+  const body = document.getElementById('osg-body-'+id);
+  const chev = document.getElementById('osg-chev-'+id);
+  if(body){body.classList.toggle('open');chev?.classList.toggle('open');}
+}
+function addOSGItem(groupId) {
+  const g = outsourceGroups.find(x=>x.id===groupId); if(!g)return;
+  if(!g.items)g.items=[];
+  g.items.push({id:Date.now(), text:'', checked:false, mins:'', attachments:[]});
+  saveOutsourceData(); renderOSGItems(groupId);
+  setTimeout(()=>{
+    const ins = document.querySelectorAll(`#osg-items-${groupId} .osg-item-text-in`);
+    if(ins.length)ins[ins.length-1].focus();
+  },50);
+}
+function delOSGItem(groupId, itemId) {
+  const g = outsourceGroups.find(x=>x.id===groupId); if(!g)return;
+  g.items = g.items.filter(x=>x.id!==itemId);
+  saveOutsourceData(); renderOSGItems(groupId);
+}
+function togOSGItem(groupId, itemId, checked) {
+  const g=outsourceGroups.find(x=>x.id===groupId); if(!g)return;
+  const item=g.items.find(x=>x.id===itemId); if(item){item.checked=checked;saveOutsourceData();}
+}
+function updOSGItemText(groupId, itemId, v) {
+  const g=outsourceGroups.find(x=>x.id===groupId); if(!g)return;
+  const item=g.items.find(x=>x.id===itemId); if(item){item.text=v;saveOutsourceData();}
+}
+function updOSGItemTime(groupId, itemId, v) {
+  const g=outsourceGroups.find(x=>x.id===groupId); if(!g)return;
+  const item=g.items.find(x=>x.id===itemId); if(item){item.mins=v;saveOutsourceData();}
+}
+function addOSGAttach(groupId, itemId, input) {
+  const file = input.files[0]; if(!file)return;
+  const g = outsourceGroups.find(x=>x.id===groupId); if(!g)return;
+  const item = g.items.find(x=>x.id===itemId); if(!item)return;
+  if(!item.attachments)item.attachments=[];
+  const reader = new FileReader();
+  reader.onload = e => {
+    item.attachments.push({id:Date.now(), data:e.target.result, type:file.type.startsWith('image/')?'image':'pdf', name:file.name});
+    saveOutsourceData(); renderOSGItems(groupId);
+  };
+  reader.readAsDataURL(file);
+  input.value='';
+}
+function delOSGAttach(groupId, itemId, attachId) {
+  const g=outsourceGroups.find(x=>x.id===groupId); if(!g)return;
+  const item=g.items.find(x=>x.id===itemId); if(!item)return;
+  item.attachments=item.attachments.filter(a=>a.id!==attachId);
+  saveOutsourceData(); renderOSGItems(groupId);
+}
+function renderOSGItems(groupId) {
+  const g = outsourceGroups.find(x=>x.id===groupId); if(!g)return;
+  const container = document.getElementById('osg-items-'+groupId); if(!container)return;
+  if(!g.items||!g.items.length){
+    container.innerHTML='<div style="color:var(--text3);font-size:12px;font-style:italic;padding:6px 0">No items yet.</div>';
+    return;
+  }
+  container.innerHTML = g.items.map(item => {
+    const attachHtml = (item.attachments||[]).map(a=>`
+      <div style="display:inline-flex;align-items:center;gap:4px">
+        ${a.type==='image'?`<img src="${a.data}" class="osg-item-img" onclick="openAttachPreview(null,null,'${a.data}','image','${esc(a.name)}')" title="${esc(a.name)}">`:
+        `<div class="osg-item-pdf" onclick="openAttachPreview(null,null,'${a.data}','pdf','${esc(a.name)}')" title="${esc(a.name)}">📄 ${esc(a.name)}</div>`}
+        <button class="osg-remove-attach" onclick="delOSGAttach(${groupId},${item.id},${a.id})">×</button>
+      </div>`).join('');
+    return `<div class="osg-item">
+      <div class="osg-item-hdr">
+        <input type="checkbox" class="osg-item-cb" ${item.checked?'checked':''} onchange="togOSGItem(${groupId},${item.id},this.checked)">
+        <div class="osg-item-content">
+          <div style="display:flex;align-items:center;gap:6px">
+            <input class="osg-item-text-in" value="${esc(item.text)}" placeholder="Checklist item..." oninput="updOSGItemText(${groupId},${item.id},this.value)" style="${item.checked?'text-decoration:line-through;opacity:.5':''}">
+            <input class="osg-item-time-in" value="${esc(item.mins||'')}" placeholder="mins..." title="How many minutes to complete" oninput="updOSGItemTime(${groupId},${item.id},this.value)">
+          </div>
+          <div class="osg-item-attachments">
+            ${attachHtml}
+            <label class="osg-item-attach-btn">📎 Add Photo/PDF<input type="file" accept="image/*,.pdf" style="display:none" onchange="addOSGAttach(${groupId},${item.id},this)"></label>
+          </div>
+        </div>
+        <button class="osg-item-del" onclick="delOSGItem(${groupId},${item.id})">×</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+function renderOutsource() {
+  const list = document.getElementById('outsource-list'); if(!list)return;
+  if(!outsourceGroups.length){
+    list.innerHTML='<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--rlg);padding:30px;text-align:center;color:var(--text3);font-style:italic;font-size:13px">No groups yet. Click "+ Add Group" to get started.</div>';
+    return;
+  }
+  list.innerHTML='';
+  outsourceGroups.forEach(g => {
+    const card = document.createElement('div');
+    card.className = 'osg-card';
+    // Calc total time
+    const itemTotal = (g.items||[]).reduce((sum,i)=>sum+(parseInt(i.mins)||0),0);
+    const displayTime = g.totalMins || (itemTotal > 0 ? itemTotal+' mins' : '');
+    card.innerHTML = `
+      <div class="osg-hdr" onclick="togOSG(${g.id})">
+        <input class="osg-name-in" value="${esc(g.name)}" placeholder="Group name..." onclick="event.stopPropagation()" oninput="updOSGName(${g.id},this.value)">
+        <input class="osg-time-in" value="${esc(g.totalMins||'')}" placeholder="Total mins..." onclick="event.stopPropagation()" oninput="updOSGTime(${g.id},this.value)" title="Estimated total minutes for this group">
+        ${itemTotal>0?`<span class="osg-total-time">~${itemTotal} min total</span>`:''}
+        <button class="osg-del-btn" onclick="event.stopPropagation();delOutsourceGroup(${g.id})">×</button>
+        <span class="osg-chevron" id="osg-chev-${g.id}">▾</span>
+      </div>
+      <div class="osg-body" id="osg-body-${g.id}">
+        <div id="osg-items-${g.id}"></div>
+        <button class="osg-add-item-btn" onclick="addOSGItem(${g.id})">+ Add Item</button>
+      </div>`;
+    list.appendChild(card);
+    renderOSGItems(g.id);
+  });
+}
+
+// ── IMPORTANT INFO ──
+let infoSections = [];
+const INFO_K = 'asn_info_v1';
+function loadInfoData(){try{const s=localStorage.getItem(INFO_K);if(s)return JSON.parse(s);}catch(e){}return[];}
+function saveInfoData(){localStorage.setItem(INFO_K,JSON.stringify(infoSections));triggerSave();}
+
+const INFO_ICONS = ['🔑','🔧','👤','🔗','📌','🗂','💡','📝','⚠️','🏢'];
+function addInfoSection() {
+  infoSections.push({id:Date.now(), title:'New Section', icon:'📌', items:[]});
+  saveInfoData(); renderImportantInfo();
+  setTimeout(()=>{
+    const ins = document.querySelectorAll('.info-section-title-in');
+    if(ins.length)ins[ins.length-1].focus();
+  },50);
+}
+function delInfoSection(id) {
+  if(!confirm('Delete this section?'))return;
+  infoSections=infoSections.filter(x=>x.id!==id);
+  saveInfoData(); renderImportantInfo();
+}
+function updInfoTitle(id,v){const s=infoSections.find(x=>x.id===id);if(s){s.title=v;saveInfoData();}}
+function updInfoIcon(id,v){const s=infoSections.find(x=>x.id===id);if(s){s.icon=v;saveInfoData();}}
+function addInfoItem(sectionId, type) {
+  const s=infoSections.find(x=>x.id===sectionId);if(!s)return;
+  if(!s.items)s.items=[];
+  s.items.push({id:Date.now(), label:type==='password'?'Password':type==='link'?'URL':type==='person'?'Name':'Label', value:'', type:type||'text'});
+  saveInfoData(); renderInfoSectionItems(sectionId);
+  setTimeout(()=>{
+    const ins=document.querySelectorAll(`#info-items-${sectionId} .info-item-val-in`);
+    if(ins.length)ins[ins.length-1].focus();
+  },50);
+}
+function delInfoItem(sectionId, itemId){
+  const s=infoSections.find(x=>x.id===sectionId);if(!s)return;
+  s.items=s.items.filter(x=>x.id!==itemId);
+  saveInfoData();renderInfoSectionItems(sectionId);
+}
+function updInfoItemLabel(sectionId,itemId,v){
+  const s=infoSections.find(x=>x.id===sectionId);if(!s)return;
+  const item=s.items.find(x=>x.id===itemId);if(item){item.label=v;saveInfoData();}
+}
+function updInfoItemVal(sectionId,itemId,v){
+  const s=infoSections.find(x=>x.id===sectionId);if(!s)return;
+  const item=s.items.find(x=>x.id===itemId);if(item){item.value=v;saveInfoData();}
+}
+function togPassVis(el){
+  const inp=el.previousElementSibling;
+  if(inp.type==='password'){inp.type='text';el.textContent='🙈';}else{inp.type='password';el.textContent='👁';}
+}
+function renderInfoSectionItems(sectionId){
+  const s=infoSections.find(x=>x.id===sectionId);if(!s)return;
+  const container=document.getElementById('info-items-'+sectionId);if(!container)return;
+  if(!s.items||!s.items.length){
+    container.innerHTML='<div style="color:var(--text3);font-size:12px;font-style:italic;padding:6px 0">No items yet. Use the buttons below to add.</div>';
+    return;
+  }
+  container.innerHTML=s.items.map(item=>{
+    const isPass=item.type==='password';
+    const isLink=item.type==='link';
+    return `<div class="info-item">
+      <input class="info-item-label-in" value="${esc(item.label)}" placeholder="Label..." oninput="updInfoItemLabel(${sectionId},${item.id},this.value)">
+      <input class="info-item-val-in${isPass?' password':''}" type="${isPass?'password':'text'}" value="${esc(item.value)}" placeholder="${isLink?'https://...':isPass?'Password...':'Value...'}" oninput="updInfoItemVal(${sectionId},${item.id},this.value)">
+      ${isPass?`<button class="info-show-pass" onclick="togPassVis(this)" title="Show/hide">👁</button>`:''}
+      ${isLink&&item.value?`<a href="${esc(item.value)}" target="_blank" style="font-size:13px;color:var(--blue);text-decoration:none" title="Open link">↗</a>`:''}
+      <button class="info-item-del" onclick="delInfoItem(${sectionId},${item.id})">×</button>
+    </div>`;
+  }).join('');
+}
+function renderImportantInfo(){
+  const container=document.getElementById('info-sections');if(!container)return;
+  if(!infoSections.length){
+    container.innerHTML='<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--rlg);padding:30px;text-align:center;color:var(--text3);font-style:italic;font-size:13px">No info sections yet. Click "+ Add Section" below.</div>';
+    return;
+  }
+  container.innerHTML='';
+  infoSections.forEach(s=>{
+    const sec=document.createElement('div');
+    sec.className='info-section';
+    sec.innerHTML=`
+      <div class="info-section-hdr">
+        <select class="info-section-icon-sel" onchange="updInfoIcon(${s.id},this.value)">
+          ${INFO_ICONS.map(ic=>`<option value="${ic}" ${s.icon===ic?'selected':''}>${ic}</option>`).join('')}
+        </select>
+        <input class="info-section-title-in" value="${esc(s.title)}" placeholder="Section title..." oninput="updInfoTitle(${s.id},this.value)">
+        <button class="info-section-del" onclick="delInfoSection(${s.id})">×</button>
+      </div>
+      <div class="info-body">
+        <div id="info-items-${s.id}"></div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px">
+          <button class="info-add-btn" onclick="addInfoItem(${s.id},'text')">+ Add Item</button>
+          <button class="info-add-btn" onclick="addInfoItem(${s.id},'password')" style="border-color:rgba(210,153,34,.4);color:var(--amber)">🔑 Password</button>
+          <button class="info-add-btn" onclick="addInfoItem(${s.id},'link')" style="border-color:rgba(88,166,255,.4);color:var(--blue)">🔗 Link</button>
+          <button class="info-add-btn" onclick="addInfoItem(${s.id},'person')" style="border-color:rgba(63,185,80,.4);color:var(--green)">👤 Person</button>
+        </div>
+      </div>`;
+    container.appendChild(sec);
+    renderInfoSectionItems(s.id);
+  });
+}
+
+// ── INIT DATA FOR NEW TABS ──
+rulesItems = loadRulesData();
+sopItems = loadSOPData();
+outsourceGroups = loadOutsourceData();
+infoSections = loadInfoData();
 
 // ── INIT ──
 async function init(){
